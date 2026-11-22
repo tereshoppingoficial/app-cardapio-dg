@@ -16,7 +16,7 @@
         <span class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full">ADMIN</span>
         <div>
           <h1 class="text-sm sm:text-base font-black tracking-tight">Gestão do Cardápio & Pedidos da Mesa</h1>
-          <p class="text-[11px] text-amber-200/80">Itens, palavras-chave, vídeos curtos, carrossel panorâmico e status</p>
+          <p class="text-[11px] text-amber-200/80">Pedidos, departamentos, vídeos curtos, carrossel panorâmico e QR Code</p>
         </div>
       </div>
 
@@ -35,11 +35,15 @@
       </button>
       <button type="button" onclick="switchTab('items')" id="tabBtn-items"
         class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 whitespace-nowrap">
-        <i class="fa-solid fa-utensils mr-1"></i>Itens & Palavras-Chave
+        <i class="fa-solid fa-utensils mr-1"></i>Itens & Departamentos
       </button>
       <button type="button" onclick="switchTab('banners')" id="tabBtn-banners"
         class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 whitespace-nowrap">
         <i class="fa-solid fa-images mr-1"></i>Cabeçalho & Carrossel
+      </button>
+      <button type="button" onclick="switchTab('qrcode')" id="tabBtn-qrcode"
+        class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 whitespace-nowrap">
+        <i class="fa-solid fa-qrcode mr-1"></i>QR Code Mesas
       </button>
     </div>
   </header>
@@ -71,11 +75,11 @@
       </div>
     </section>
 
-    <!-- ABA 2: ITENS DO CARDÁPIO + PALAVRAS-CHAVE -->
+    <!-- ABA 2: ITENS DO CARDÁPIO & DEPARTAMENTOS -->
     <section id="section-items" class="hidden space-y-6">
       <form onsubmit="event.preventDefault(); saveMenuItem();" class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4">
         <div class="flex items-center justify-between gap-2">
-          <h2 id="itemFormTitle" class="text-sm sm:text-base font-black text-slate-900">Novo Item do Cardápio</h2>
+          <h2 id="itemFormTitle" class="text-sm sm:text-base font-black text-slate-900">Novo Post / Item do Cardápio</h2>
           <button type="button" onclick="resetItemForm()" class="text-xs font-bold text-slate-500 hover:text-slate-900">
             Limpar campos
           </button>
@@ -91,7 +95,7 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Departamento / Categoria *</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Departamento *</label>
             <select id="itemCategory" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs sm:text-sm bg-white">
               <option value="combos">Combos</option>
               <option value="promocoes">Promoções</option>
@@ -116,20 +120,10 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Descrição</label>
-            <input type="text" id="itemDescription" placeholder="Ingredientes, tamanho ou detalhes..."
-              class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs sm:text-sm" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              Palavras-chave da busca (separadas por vírgula)
-            </label>
-            <input type="text" id="itemKeywords" placeholder="Ex: bacon, cheddar, artesanal, combo, promoção"
-              class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs sm:text-sm" />
-          </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Descrição (base da busca por palavras-chave)</label>
+          <input type="text" id="itemDescription" placeholder="Descreva ingredientes, porção, sabor, acompanhamento..."
+            class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs sm:text-sm" />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
@@ -232,6 +226,47 @@
       <div id="panoramaSlidesAdminList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
     </section>
 
+    <!-- ABA 4: GERADOR DE QR CODE POR MESA -->
+    <section id="section-qrcode" class="hidden">
+      <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-2xs max-w-xl mx-auto space-y-5">
+        <div>
+          <h2 class="text-base font-black text-slate-900">Gerador de QR Code de Pedido</h2>
+          <p class="text-xs text-gray-500 mt-0.5">Gere o QR Code para o cliente abrir o cardápio já vinculado à mesa.</p>
+        </div>
+
+        <div class="flex items-end gap-3 flex-wrap">
+          <div class="flex-1 min-w-[140px]">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Número da Mesa</label>
+            <input type="text" id="qrTableInput" value="01" oninput="updateQrCodeGenerator()"
+              placeholder="Ex: 01, 02, 10"
+              class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm font-bold" />
+          </div>
+          <button type="button" onclick="updateQrCodeGenerator()"
+            class="px-4 py-2 rounded-xl bg-[#111827] text-amber-400 font-black text-xs sm:text-sm">
+            Gerar QR Code
+          </button>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center text-center space-y-3">
+          <span id="qrMesaBadge" class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full">Mesa 01</span>
+          <img id="qrCodeImage" src="" alt="QR Code da Mesa"
+            class="w-48 h-48 rounded-xl bg-white p-2 border border-gray-200 shadow-2xs" />
+          <p id="qrTargetUrlText" class="text-[11px] text-slate-600 break-all font-mono"></p>
+        </div>
+
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <button type="button" onclick="copyQrTableUrl()"
+            class="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-copy"></i><span>Copiar Link</span>
+          </button>
+          <button type="button" onclick="window.print()"
+            class="flex-1 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-print"></i><span>Imprimir QR Code</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <div id="adminToast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity"></div>
@@ -248,6 +283,17 @@
       storageBucket: "projeto-gold-658a1.firebasestorage.app",
       messagingSenderId: "724189004504",
       appId: "1:724189004504:web:7ec567faab926291a24dad"
+    };
+
+    const ADMIN_DELETE_PASSWORD = "1234";
+
+    const CATEGORY_LABELS = {
+      combos: "Combos",
+      promocoes: "Promoções",
+      pratos: "Pratos",
+      lanches: "Lanches & Porções",
+      bebidas: "Bebidas",
+      sobremesas: "Sobremesas"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -275,16 +321,17 @@
     }
 
     window.switchTab = function(tab) {
-      ["orders", "items", "banners"].forEach(t => {
+      ["orders", "items", "banners", "qrcode"].forEach(t => {
         document.getElementById(`section-${t}`).classList.toggle("hidden", t !== tab);
         const btn = document.getElementById(`tabBtn-${t}`);
         btn.className = t === tab
           ? "px-3.5 py-1.5 rounded-xl text-xs font-black bg-amber-400 text-slate-950 whitespace-nowrap"
           : "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 whitespace-nowrap";
       });
+      if (tab === "qrcode") updateQrCodeGenerator();
     };
 
-    // PEDIDOS DAS MESAS
+    // PEDIDOS DAS MESAS + EXCLUSÃO DE FINALIZADOS COM SENHA
     onValue(ref(db, "orders"), (snap) => {
       const val = snap.val();
       orders = val
@@ -309,6 +356,24 @@
       showToast(`Status atualizado para: ${status.toUpperCase()}`);
     };
 
+    window.deleteFinishedOrder = async function(orderId) {
+      const target = orders.find(o => o.id === orderId);
+      if (!target || target.status !== "finalizado") {
+        showToast("Apenas pedidos finalizados podem ser excluídos.");
+        return;
+      }
+
+      const typedPassword = window.prompt("Digite a senha administrativa para excluir este pedido finalizado:");
+      if (typedPassword === null) return;
+      if (typedPassword.trim() !== ADMIN_DELETE_PASSWORD) {
+        showToast("Senha incorreta. Exclusão cancelada.");
+        return;
+      }
+
+      await remove(ref(db, `orders/${orderId}`));
+      showToast("Pedido finalizado excluído.");
+    };
+
     function renderOrders() {
       const grid = document.getElementById("ordersGrid");
       const filtered = currentOrderFilter === "all"
@@ -329,6 +394,7 @@
 
       grid.innerHTML = filtered.map(o => {
         const hora = o.createdAt ? new Date(o.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+        const isFinished = o.status === "finalizado";
         return `
           <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-2xs space-y-3">
             <div class="flex items-start justify-between gap-2">
@@ -356,13 +422,19 @@
 
             <div class="flex items-center justify-between pt-2 border-t border-gray-100 gap-2 flex-wrap">
               <span class="text-sm font-black text-emerald-700">Total: ${formatBRL(o.total)}</span>
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 flex-wrap">
                 <button type="button" onclick="updateOrderStatus('${o.id}', 'preparo')"
                   class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 text-[11px] font-bold">Preparo</button>
                 <button type="button" onclick="updateOrderStatus('${o.id}', 'pronto')"
                   class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-black">Pronto</button>
                 <button type="button" onclick="updateOrderStatus('${o.id}', 'finalizado')"
                   class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border text-[11px] font-bold">Finalizar</button>
+                ${isFinished ? `
+                  <button type="button" onclick="deleteFinishedOrder('${o.id}')"
+                    class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-[11px] font-black flex items-center gap-1">
+                    <i class="fa-solid fa-trash"></i><span>Excluir</span>
+                  </button>
+                ` : ""}
               </div>
             </div>
           </div>
@@ -370,7 +442,7 @@
       }).join("");
     }
 
-    // ITENS DO CARDÁPIO + PALAVRAS-CHAVE
+    // ITENS DO CARDÁPIO & DEPARTAMENTOS
     onValue(ref(db, "menu_items"), (snap) => {
       const val = snap.val();
       items = val ? Object.entries(val).map(([id, v]) => ({ id, ...v })) : [];
@@ -432,13 +504,12 @@
 
     window.resetItemForm = function() {
       document.getElementById("editItemId").value = "";
-      document.getElementById("itemFormTitle").textContent = "Novo Item do Cardápio";
+      document.getElementById("itemFormTitle").textContent = "Novo Post / Item do Cardápio";
       document.getElementById("itemTitle").value = "";
       document.getElementById("itemCategory").value = "combos";
       document.getElementById("itemPrice").value = "";
       document.getElementById("itemOldPrice").value = "";
       document.getElementById("itemDescription").value = "";
-      document.getElementById("itemKeywords").value = "";
       document.getElementById("itemAvailable").checked = true;
       document.getElementById("itemPhotosInput").value = "";
       document.getElementById("itemVideoInput").value = "";
@@ -459,7 +530,6 @@
       document.getElementById("itemPrice").value = item.price || "";
       document.getElementById("itemOldPrice").value = item.oldPrice || "";
       document.getElementById("itemDescription").value = item.description || "";
-      document.getElementById("itemKeywords").value = item.keywords || "";
       document.getElementById("itemAvailable").checked = item.available !== false;
       draftPhotos = Array.isArray(item.photos) ? [...item.photos] : (item.imageData ? [item.imageData] : []);
       draftVideo = item.videoData || "";
@@ -476,7 +546,6 @@
         price: (document.getElementById("itemPrice").value || "").trim(),
         oldPrice: (document.getElementById("itemOldPrice").value || "").trim(),
         description: (document.getElementById("itemDescription").value || "").trim(),
-        keywords: (document.getElementById("itemKeywords").value || "").trim(),
         available: document.getElementById("itemAvailable").checked,
         photos: draftPhotos.slice(0, 10),
         imageData: draftPhotos[0] || "",
@@ -512,12 +581,13 @@
 
       list.innerHTML = items.map(item => {
         const thumb = (Array.isArray(item.photos) && item.photos[0]) || item.imageData || "https://placehold.co/400x250/111827/fbbf24?text=Item";
+        const deptName = CATEGORY_LABELS[item.category] || item.category || "Departamento";
         return `
           <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between">
             <div>
               <div class="relative h-36 bg-slate-900">
                 <img src="${thumb}" alt="${item.title}" class="w-full h-full object-cover" />
-                <span class="absolute top-2 left-2 bg-black/75 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded">${item.category}</span>
+                <span class="absolute top-2 left-2 bg-black/80 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded">${deptName}</span>
                 ${item.videoData ? `<span class="absolute top-2 right-2 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded">Vídeo</span>` : ""}
               </div>
               <div class="p-3.5 space-y-1.5">
@@ -526,7 +596,6 @@
                   <span class="text-xs font-black text-emerald-700">${formatBRL(item.price)}</span>
                 </div>
                 ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
-                ${item.keywords ? `<p class="text-[11px] text-amber-800 font-semibold"><i class="fa-solid fa-hashtag mr-1"></i>${item.keywords}</p>` : ""}
               </div>
             </div>
             <div class="px-3.5 pb-3.5 flex items-center justify-between gap-2 pt-1">
@@ -645,6 +714,38 @@
         </div>
       `).join("");
     }
+
+    // GERADOR DE QR CODE DE PEDIDO
+    function buildTableOrderUrl(mesa) {
+      const cleanMesa = encodeURIComponent((mesa || "01").trim() || "01");
+      const baseHref = window.location.href.split("?")[0];
+      const indexUrl = baseHref.endsWith("/admin.html")
+        ? baseHref.replace(/\/admin\.html$/, "/index.html")
+        : new URL("index.html", baseHref).href;
+      return `${indexUrl}?mesa=${cleanMesa}`;
+    }
+
+    window.updateQrCodeGenerator = function() {
+      const rawMesa = (document.getElementById("qrTableInput").value || "01").trim() || "01";
+      const targetUrl = buildTableOrderUrl(rawMesa);
+      document.getElementById("qrMesaBadge").textContent = `Mesa ${rawMesa}`;
+      document.getElementById("qrTargetUrlText").textContent = targetUrl;
+      document.getElementById("qrCodeImage").src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(targetUrl)}`;
+    };
+
+    window.copyQrTableUrl = async function() {
+      const url = document.getElementById("qrTargetUrlText").textContent;
+      if (!url) return;
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast("Link da mesa copiado!");
+      } catch (e) {
+        showToast("Não foi possível copiar automaticamente.");
+      }
+    };
+
+    updateQrCodeGenerator();
   </script>
 </body>
 </html>
