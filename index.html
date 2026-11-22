@@ -1,13 +1,906 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>app-cardapio-dg</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Pedido Digital na Mesa • Cardápio & QR Code</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+    body { overflow-x: clip; min-height: 100vh; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .carousel-track { scroll-snap-type: x mandatory; }
+    .carousel-slide { scroll-snap-align: start; flex: 0 0 100%; }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] text-slate-900 font-sans antialiased pb-28">
+
+  <!-- TOPO DO ESTABELECIMENTO + MESA IDENTIFICADA -->
+  <header class="bg-[#111827] text-white shadow-md">
+    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2">
+          <h1 id="storeNameHeader" class="font-black text-base sm:text-xl tracking-tight truncate">SABOR & BRASA • RESTAURANTE</h1>
+          <span id="tableBadge" class="bg-amber-400 text-slate-950 text-[11px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap">
+            Mesa 01
+          </span>
+        </div>
+        <p id="storeSubtitleHeader" class="text-[11px] text-gray-300 truncate">Peça direto pelo QR Code da sua mesa</p>
+      </div>
+
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <button type="button" onclick="openTableModal()" title="Alterar Mesa ou Nome"
+          class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center gap-1">
+          <i class="fa-solid fa-chair text-amber-400"></i>
+          <span class="hidden sm:inline">Mesa</span>
+        </button>
+        <button type="button" onclick="openAdminGate()" title="Painel ADM"
+          class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs">
+          <i class="fa-solid fa-lock text-amber-400"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- BANNER PANORÂMICO: SUGESTÕES DO DIA -->
+    <div id="dailySuggestionBannerBox" class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-4 pb-3 hidden">
+      <div class="relative rounded-2xl overflow-hidden border border-amber-400/30 bg-slate-900 shadow-sm">
+        <img id="dailySuggestionImg" src="" alt="Sugestões do Dia" class="w-full h-36 sm:h-48 lg:h-56 object-cover block" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent flex flex-col justify-end p-3 sm:p-4">
+          <span class="inline-block w-fit bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md mb-1">
+            Sugestão do Dia
+          </span>
+          <p id="dailySuggestionTitle" class="text-white font-black text-sm sm:text-lg leading-tight"></p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 pt-3 space-y-4">
+
+    <!-- BANNERS PROMOCIONAIS ESTILO TOTEM (COMBOS E PROMOÇÕES) -->
+    <section id="totemBannersSection" class="hidden space-y-2">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+          <i class="fa-solid fa-fire text-amber-500 mr-1"></i> Combos & Promoções (Estilo Totem)
+        </h2>
+        <span class="text-[10px] font-bold text-gray-400">Toque no banner</span>
+      </div>
+
+      <div id="totemBannersGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
+        <!-- Renderizado via JS -->
+      </div>
+    </section>
+
+    <!-- BUSCA + FILTROS DE CATEGORIA -->
+    <section class="bg-white rounded-2xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
+      <div class="relative flex items-center">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-xs"></i>
+        <input type="search" id="menuSearchInput" oninput="renderMenu()"
+          placeholder="Buscar prato, combo, lanche, bebida ou promoção..."
+          class="w-full bg-slate-100 text-slate-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+      </div>
+
+      <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+        <!-- Categorias via JS -->
+      </div>
+    </section>
+
+    <!-- ITENS DO CARDÁPIO -->
+    <section id="menuItemsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="col-span-full py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-200">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-amber-500 mb-2"></i>
+        <p class="text-xs font-semibold">Carregando cardápio...</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BARRA FLUTUANTE DA SACOLA / PEDIDO DA MESA -->
+  <div id="cartBar" class="fixed bottom-3 inset-x-3 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-4xl lg:max-w-6xl z-30 hidden">
+    <button type="button" onclick="openCartModal()"
+      class="w-full bg-[#111827] hover:bg-slate-800 text-white rounded-2xl px-4 py-3.5 shadow-2xl border border-amber-400/40 flex items-center justify-between gap-3 active:scale-[0.99] transition">
+      <div class="flex items-center gap-2.5">
+        <span id="cartCountBadge" class="w-7 h-7 rounded-xl bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center">0</span>
+        <div class="text-left">
+          <p class="text-xs sm:text-sm font-black leading-tight">Ver Pedido da Mesa</p>
+          <p id="cartTableSummary" class="text-[10px] text-amber-300 font-semibold">Mesa 01</p>
+        </div>
+      </div>
+      <span id="cartTotalText" class="text-sm sm:text-base font-black text-amber-400">R$ 0,00</span>
+    </button>
+  </div>
+
+  <!-- MODAL DA SACOLA E ENVIO DO PEDIDO PARA A RECEPÇÃO -->
+  <div id="cartModal" class="fixed inset-0 z-50 bg-black/65 hidden items-end sm:items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-4 py-3.5 bg-[#111827] text-white flex items-center justify-between">
+        <div>
+          <h3 class="font-black text-sm">Seu Pedido • <span id="modalCartTableLabel" class="text-amber-400">Mesa 01</span></h3>
+          <p class="text-[10px] text-gray-300">Enviado direto para a recepção/cozinha</p>
+        </div>
+        <button onclick="closeModal('cartModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div id="cartItemsList" class="p-4 overflow-y-auto space-y-2.5 flex-1"></div>
+
+      <div class="p-4 border-t border-gray-200 bg-slate-50 space-y-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Seu nome (opcional)</label>
+          <input type="text" id="customerNameInput" placeholder="Ex: Lucas"
+            class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:border-slate-900" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Observações gerais do pedido</label>
+          <input type="text" id="orderGeneralNoteInput" placeholder="Ex: Talheres na mesa, sem pimenta..."
+            class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:border-slate-900" />
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-xs font-bold text-slate-600">Total do pedido</span>
+          <span id="modalCartTotal" class="text-lg font-black text-slate-900">R$ 0,00</span>
+        </div>
+
+        <button type="button" id="sendOrderBtn" onclick="submitOrderToReception()"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl text-sm shadow-md transition">
+          Enviar Pedido para a Recepção
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMAÇÃO DE MESA -->
+  <div id="tableModal" class="fixed inset-0 z-50 bg-black/65 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-black text-sm text-slate-900">Identificação da Mesa</h3>
+        <button onclick="closeModal('tableModal')" class="text-gray-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Número ou nome da mesa</label>
+        <input type="text" id="tableNumberInput" placeholder="Ex: 01, 02, Varanda 03"
+          class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm font-bold focus:outline-none focus:border-slate-900" />
+      </div>
+      <button type="button" onclick="saveTableNumber()" class="w-full bg-[#111827] text-white font-bold py-2.5 rounded-xl text-xs">
+        Confirmar Mesa
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL LOGIN ADM -->
+  <div id="loginModal" class="fixed inset-0 z-50 bg-black/65 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-black text-sm text-slate-900">Acesso ADM do Cardápio</h3>
+        <button onclick="closeModal('loginModal')" class="text-gray-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="event.preventDefault(); verifyAdminLogin();" class="space-y-3">
+        <input type="password" id="adminPassInput" placeholder="Senha ADM (padrão: admin123)"
+          class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-slate-900" />
+        <button type="submit" class="w-full bg-[#111827] text-white font-bold py-2.5 rounded-xl text-xs">
+          Entrar no Painel ADM
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL PAINEL ADM (CARDÁPIO + BANNER PANORÂMICO + BANNERS TOTEM + QR CODE POR MESA) -->
+  <div id="adminModal" class="fixed inset-0 z-50 bg-black/65 hidden items-end sm:items-center justify-center">
+    <div class="bg-white w-full max-w-2xl rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-4 py-3 bg-[#111827] text-white flex items-center justify-between">
+        <h2 class="font-black text-sm">Painel ADM • Cardápio & Banners</h2>
+        <button onclick="closeModal('adminModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="flex border-b border-gray-200 bg-slate-50 text-xs font-extrabold overflow-x-auto no-scrollbar">
+        <button type="button" onclick="switchAdminTab('items')" id="tab-items" class="px-4 py-3 border-b-2 border-slate-900 text-slate-900 whitespace-nowrap">Itens & Cardápio</button>
+        <button type="button" onclick="switchAdminTab('banners')" id="tab-banners" class="px-4 py-3 border-b-2 border-transparent text-gray-500 whitespace-nowrap">Sugestão & Totem</button>
+        <button type="button" onclick="switchAdminTab('qrcodes')" id="tab-qrcodes" class="px-4 py-3 border-b-2 border-transparent text-gray-500 whitespace-nowrap">QR Code Mesas</button>
+      </div>
+
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+
+        <!-- ABA 1: CADASTRAR / EDITAR PRATOS, COMBOS, PROMOÇÕES -->
+        <div id="admPane-items" class="space-y-4">
+          <form onsubmit="handleSaveMenuItem(event)" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            <input type="hidden" id="editItemId" value="" />
+            <div class="flex items-center justify-between">
+              <span id="itemFormTitle" class="text-xs font-black text-slate-800">Novo Item do Cardápio</span>
+              <button type="button" onclick="resetMenuItemForm()" class="text-[11px] font-bold text-blue-600">Limpar</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Nome do Prato / Combo / Lanche *</label>
+                <input type="text" id="itemTitle" required placeholder="Ex: Combo Duplo Bacon + Batata"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Categoria *</label>
+                <select id="itemCategory" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold bg-white">
+                  <option value="combos">Combos</option>
+                  <option value="promocoes">Promoções</option>
+                  <option value="pratos">Pratos Principais</option>
+                  <option value="lanches">Lanches & Porções</option>
+                  <option value="bebidas">Bebidas</option>
+                  <option value="sobremesas">Sobremesas</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Preço (R$) *</label>
+                <input type="text" id="itemPrice" required placeholder="Ex: 34,90"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Preço De / Antes (opcional)</label>
+                <input type="text" id="itemOldPrice" placeholder="Ex: 42,00"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Descrição</label>
+              <textarea id="itemDesc" rows="2" placeholder="Ingredientes, acompanhamentos ou detalhes..."
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Foto do Item</label>
+              <input type="file" id="itemImageInput" accept="image/*" onchange="handleItemImageUpload(event)"
+                class="w-full text-xs text-slate-600" />
+              <img id="itemImagePreview" src="" class="hidden mt-2 h-24 w-24 object-cover rounded-xl border" />
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                <input type="checkbox" id="itemAvailable" checked class="accent-emerald-600" />
+                <span>Disponível para pedido</span>
+              </label>
+              <button type="submit" id="saveItemBtn" class="bg-[#111827] text-white font-black px-4 py-2 rounded-xl text-xs">
+                Salvar Item
+              </button>
+            </div>
+          </form>
+
+          <div id="adminItemsList" class="space-y-2"></div>
+        </div>
+
+        <!-- ABA 2: BANNER PANORÂMICO (SUGESTÕES DO DIA) + BANNERS ESTILO TOTEM -->
+        <div id="admPane-banners" class="space-y-5 hidden">
+          <form onsubmit="handleSaveRestaurantConfig(event)" class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-3">
+            <p class="text-xs font-black text-slate-900">Banner Panorâmico • Sugestões do Dia</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Nome do Estabelecimento</label>
+                <input type="text" id="cfgStoreName" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Título da Sugestão do Dia</label>
+                <input type="text" id="cfgDailyTitle" placeholder="Ex: Picanha na Chapa + Guarnições por R$ 59,90"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Imagem Panorâmica (Sugestões do Dia)</label>
+              <input type="file" accept="image/*" onchange="handleDailyBannerUpload(event)" class="w-full text-xs" />
+            </div>
+            <button type="submit" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs">
+              Salvar Sugestão do Dia
+            </button>
+          </form>
+
+          <form onsubmit="handleSaveTotemBanner(event)" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            <p class="text-xs font-black text-slate-900">Novo Banner Promocional (Estilo Totem)</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Título do Banner *</label>
+                <input type="text" id="totemTitle" required placeholder="Ex: Combo Família 20% OFF"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Subtítulo / Destaque</label>
+                <input type="text" id="totemSubtitle" placeholder="Ex: Válido hoje no salão"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Imagem do Banner Totem *</label>
+              <input type="file" accept="image/*" onchange="handleTotemBannerUpload(event)" class="w-full text-xs" />
+            </div>
+            <button type="submit" class="bg-[#111827] text-white font-black px-4 py-2 rounded-xl text-xs">
+              Adicionar Banner Totem
+            </button>
+          </form>
+
+          <div id="adminTotemBannersList" class="space-y-2"></div>
+        </div>
+
+        <!-- ABA 3: GERADOR DE QR CODE POR MESA -->
+        <div id="admPane-qrcodes" class="space-y-3">
+          <p class="text-xs text-slate-600">Gere o QR Code de cada mesa para colar ou imprimir no salão. Ao escanear, o cliente já entra com a mesa identificada.</p>
+          <div class="flex gap-2">
+            <input type="text" id="qrTableInput" value="01" placeholder="Nº da mesa (ex: 01)"
+              class="border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold w-32" />
+            <button type="button" onclick="generateTableQrCode()" class="bg-[#111827] text-white font-bold px-4 py-2 rounded-xl text-xs">
+              Gerar QR Code
+            </button>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-2">
+            <div id="tableQrBox" class="bg-white p-3 rounded-xl border"></div>
+            <p id="tableQrUrlText" class="text-[11px] font-mono text-gray-500 break-all text-center"></p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-200"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set, push, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // SUBSTITUA PELO FIREBASE CONFIG DO SEU PROJETO
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0wXUH9fz_ZmyqW6CAphG28LmjtkFTmOA",
+      authDomain: "projeto-gold-658a1.firebaseapp.com",
+      databaseURL: "https://projeto-gold-658a1-default-rtdb.firebaseio.com",
+      projectId: "projeto-gold-658a1",
+      storageBucket: "projeto-gold-658a1.firebasestorage.app",
+      messagingSenderId: "724189004504",
+      appId: "1:724189004504:web:7ec567faab926291a24dad"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const CATEGORIES = [
+      { id: "all", label: "Tudo" },
+      { id: "combos", label: "Combos" },
+      { id: "promocoes", label: "Promoções" },
+      { id: "pratos", label: "Pratos" },
+      { id: "lanches", label: "Lanches & Porções" },
+      { id: "bebidas", label: "Bebidas" },
+      { id: "sobremesas", label: "Sobremesas" }
+    ];
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const mesaDaUrl = (urlParams.get("mesa") || "").trim();
+    let currentTable = mesaDaUrl || localStorage.getItem("mesa_digital_atual") || "01";
+    localStorage.setItem("mesa_digital_atual", currentTable);
+
+    let currentCategory = "all";
+    let menuItems = [];
+    let totemBanners = [];
+    let cart = [];
+    let isAdminLogged = false;
+
+    let storeConfig = {
+      storeName: "SABOR & BRASA • RESTAURANTE",
+      subtitle: "Peça direto pelo QR Code da sua mesa",
+      dailyTitle: "",
+      dailyImage: "",
+      adminPass: "admin123"
+    };
+
+    let pendingItemImage = "";
+    let pendingDailyBannerImage = "";
+    let pendingTotemBannerImage = "";
+
+    function parsePrice(val) {
+      if (!val) return 0;
+      const clean = String(val).replace(/[^\d,.-]/g, "").replace(",", ".");
+      const num = parseFloat(clean);
+      return isFinite(num) && num > 0 ? num : 0;
+    }
+
+    function formatBRL(num) {
+      return (num || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function updateTableUI() {
+      document.getElementById("tableBadge").textContent = `Mesa ${currentTable}`;
+      document.getElementById("cartTableSummary").textContent = `Mesa ${currentTable}`;
+      document.getElementById("modalCartTableLabel").textContent = `Mesa ${currentTable}`;
+    }
+
+    window.openTableModal = function() {
+      document.getElementById("tableNumberInput").value = currentTable;
+      document.getElementById("tableModal").classList.replace("hidden", "flex");
+    };
+
+    window.saveTableNumber = function() {
+      const val = (document.getElementById("tableNumberInput").value || "").trim();
+      if (!val) return;
+      currentTable = val;
+      localStorage.setItem("mesa_digital_atual", currentTable);
+      updateTableUI();
+      closeModal("tableModal");
+      showToast(`Mesa definida: ${currentTable}`);
+    };
+
+    // ESCUTA DADOS EM TEMPO REAL NO FIREBASE
+    onValue(ref(db, "restaurant_config"), (snap) => {
+      if (snap.exists()) storeConfig = { ...storeConfig, ...snap.val() };
+      document.getElementById("storeNameHeader").textContent = storeConfig.storeName || "RESTAURANTE";
+      document.getElementById("storeSubtitleHeader").textContent = storeConfig.subtitle || "Cardápio Digital";
+
+      const box = document.getElementById("dailySuggestionBannerBox");
+      if (storeConfig.dailyImage && storeConfig.dailyTitle) {
+        document.getElementById("dailySuggestionImg").src = storeConfig.dailyImage;
+        document.getElementById("dailySuggestionTitle").textContent = storeConfig.dailyTitle;
+        box.classList.remove("hidden");
+      } else {
+        box.classList.add("hidden");
+      }
+    });
+
+    onValue(ref(db, "totem_banners"), (snap) => {
+      const val = snap.val();
+      totemBanners = val ? Object.entries(val).map(([id, v]) => ({ id, ...v })) : [];
+      renderTotemBanners();
+      renderAdminTotemBanners();
+    });
+
+    onValue(ref(db, "menu_items"), (snap) => {
+      const val = snap.val();
+      menuItems = val ? Object.entries(val).map(([id, v]) => ({ id, ...v })) : [];
+      renderMenu();
+      renderAdminItemsList();
+    });
+
+    function renderTotemBanners() {
+      const sec = document.getElementById("totemBannersSection");
+      const grid = document.getElementById("totemBannersGrid");
+      if (!totemBanners.length) {
+        sec.classList.add("hidden");
+        return;
+      }
+      sec.classList.remove("hidden");
+      grid.innerHTML = totemBanners.map(b => `
+        <div onclick="filterByCategory('promocoes')" class="cursor-pointer rounded-2xl overflow-hidden bg-slate-900 text-white border border-gray-200 shadow-xs relative group">
+          <img src="${b.imageData}" alt="${b.title}" class="w-full h-32 sm:h-36 object-cover opacity-85 group-hover:scale-105 transition-transform duration-300" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-3 flex flex-col justify-end">
+            <span class="text-[9px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded w-fit mb-1">Totem Promo</span>
+            <p class="font-black text-sm leading-tight">${b.title}</p>
+            ${b.subtitle ? `<p class="text-[11px] text-amber-200 truncate">${b.subtitle}</p>` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderCategoryTabs() {
+      const box = document.getElementById("categoryTabs");
+      box.innerHTML = CATEGORIES.map(cat => {
+        const active = currentCategory === cat.id;
+        return `
+          <button type="button" onclick="filterByCategory('${cat.id}')"
+            class="px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition ${active ? 'bg-[#111827] text-amber-400' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+            ${cat.label}
+          </button>
+        `;
+      }).join("");
+    }
+
+    window.filterByCategory = function(catId) {
+      currentCategory = catId;
+      renderCategoryTabs();
+      renderMenu();
+    };
+
+    function renderMenu() {
+      const container = document.getElementById("menuItemsContainer");
+      const q = (document.getElementById("menuSearchInput").value || "").trim().toLowerCase();
+
+      const list = menuItems.filter(item => {
+        const matchCat = currentCategory === "all" || item.category === currentCategory;
+        const matchQ = !q ||
+          (item.title || "").toLowerCase().includes(q) ||
+          (item.description || "").toLowerCase().includes(q);
+        return matchCat && matchQ;
+      });
+
+      if (!list.length) {
+        container.innerHTML = `<div class="col-span-full py-14 text-center text-gray-400 bg-white rounded-2xl border border-gray-200 text-xs font-semibold">Nenhum item encontrado nesta categoria.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        const priceNum = parsePrice(item.price);
+        const oldNum = parsePrice(item.oldPrice);
+        const isSoldOut = item.available === false;
+
+        return `
+          <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? 'opacity-65' : ''}">
+            <div>
+              <div class="relative h-40 bg-slate-100 overflow-hidden">
+                <img src="${item.imageData || 'https://placehold.co/600x400/111827/fbbf24?text=Cardapio'}" alt="${item.title}" class="w-full h-full object-cover" />
+                <span class="absolute top-2 left-2 bg-black/75 text-amber-300 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md">
+                  ${item.category || "item"}
+                </span>
+                ${isSoldOut ? `<span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md">ESGOTADO</span>` : ""}
+              </div>
+
+              <div class="p-3 space-y-1">
+                <h3 class="font-black text-sm text-slate-900 leading-snug">${item.title}</h3>
+                ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
+              </div>
+            </div>
+
+            <div class="px-3 pb-3 pt-1 flex items-center justify-between gap-2">
+              <div>
+                ${oldNum > priceNum ? `<span class="block text-[10px] text-gray-400 line-through">${formatBRL(oldNum)}</span>` : ""}
+                <span class="text-sm font-black text-emerald-700">${formatBRL(priceNum)}</span>
+              </div>
+
+              <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}')"`}
+                class="px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#111827] hover:bg-slate-800 text-amber-400 active:scale-95'}">
+                <i class="fa-solid fa-plus"></i>
+                <span>${isSoldOut ? "Indisponível" : "Adicionar"}</span>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    // SACOLA DO CLIENTE
+    window.addToCart = function(itemId) {
+      const item = menuItems.find(i => i.id === itemId);
+      if (!item || item.available === false) return;
+      const existing = cart.find(c => c.id === item.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          id: item.id,
+          title: item.title,
+          unitPrice: parsePrice(item.price),
+          qty: 1,
+          obs: ""
+        });
+      }
+      updateCartBar();
+      showToast(`Adicionado: ${item.title}`);
+    };
+
+    window.changeCartQty = function(idx, delta) {
+      if (!cart[idx]) return;
+      cart[idx].qty += delta;
+      if (cart[idx].qty <= 0) cart.splice(idx, 1);
+      updateCartBar();
+      renderCartModal();
+    };
+
+    window.updateItemNote = function(idx, note) {
+      if (cart[idx]) cart[idx].obs = note;
+    };
+
+    function getCartTotal() {
+      return cart.reduce((acc, c) => acc + (c.unitPrice * c.qty), 0);
+    }
+
+    function updateCartBar() {
+      const bar = document.getElementById("cartBar");
+      const count = cart.reduce((acc, c) => acc + c.qty, 0);
+      if (!count) {
+        bar.classList.add("hidden");
+        return;
+      }
+      bar.classList.remove("hidden");
+      document.getElementById("cartCountBadge").textContent = count;
+      document.getElementById("cartTotalText").textContent = formatBRL(getCartTotal());
+      updateTableUI();
+    }
+
+    window.openCartModal = function() {
+      renderCartModal();
+      document.getElementById("cartModal").classList.replace("hidden", "flex");
+    };
+
+    function renderCartModal() {
+      const list = document.getElementById("cartItemsList");
+      document.getElementById("modalCartTotal").textContent = formatBRL(getCartTotal());
+      updateTableUI();
+
+      if (!cart.length) {
+        list.innerHTML = `<p class="text-center text-xs text-gray-400 py-8">Sua sacola está vazia.</p>`;
+        return;
+      }
+
+      list.innerHTML = cart.map((c, idx) => `
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="text-xs font-black text-slate-900 truncate">${c.title}</p>
+              <p class="text-[11px] font-bold text-emerald-700">${formatBRL(c.unitPrice * c.qty)}</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="changeCartQty(${idx}, -1)" class="w-7 h-7 rounded-lg bg-white border font-black text-xs">-</button>
+              <span class="text-xs font-black w-5 text-center">${c.qty}</span>
+              <button onclick="changeCartQty(${idx}, 1)" class="w-7 h-7 rounded-lg bg-white border font-black text-xs">+</button>
+            </div>
+          </div>
+          <input type="text" value="${c.obs || ""}" oninput="updateItemNote(${idx}, this.value)"
+            placeholder="Ex: sem cebola, ao ponto..."
+            class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[11px] bg-white" />
+        </div>
+      `).join("");
+    }
+
+    window.submitOrderToReception = async function() {
+      if (!cart.length) return;
+      const btn = document.getElementById("sendOrderBtn");
+      btn.disabled = true;
+      btn.textContent = "Enviando pedido...";
+
+      try {
+        await push(ref(db, "orders"), {
+          tableNumber: currentTable,
+          customerName: (document.getElementById("customerNameInput").value || "").trim(),
+          generalNote: (document.getElementById("orderGeneralNoteInput").value || "").trim(),
+          items: cart,
+          total: getCartTotal(),
+          status: "novo",
+          createdAt: Date.now()
+        });
+
+        cart = [];
+        document.getElementById("orderGeneralNoteInput").value = "";
+        updateCartBar();
+        closeModal("cartModal");
+        showToast(`Pedido da Mesa ${currentTable} enviado para a recepção!`);
+      } catch (err) {
+        showToast("Erro ao enviar pedido.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Enviar Pedido para a Recepção";
+      }
+    };
+
+    // ADM
+    window.openAdminGate = function() {
+      if (isAdminLogged) {
+        openAdminModal();
+      } else {
+        document.getElementById("adminPassInput").value = "";
+        document.getElementById("loginModal").classList.replace("hidden", "flex");
+      }
+    };
+
+    window.verifyAdminLogin = function() {
+      const pass = document.getElementById("adminPassInput").value;
+      if (pass === (storeConfig.adminPass || "admin123")) {
+        isAdminLogged = true;
+        closeModal("loginModal");
+        openAdminModal();
+      } else {
+        showToast("Senha incorreta!");
+      }
+    };
+
+    function openAdminModal() {
+      document.getElementById("cfgStoreName").value = storeConfig.storeName || "";
+      document.getElementById("cfgDailyTitle").value = storeConfig.dailyTitle || "";
+      document.getElementById("adminModal").classList.replace("hidden", "flex");
+      generateTableQrCode();
+    }
+
+    window.switchAdminTab = function(tab) {
+      ["items", "banners", "qrcodes"].forEach(t => {
+        document.getElementById(`admPane-${t}`).classList.toggle("hidden", t !== tab);
+        document.getElementById(`tab-${t}`).className = t === tab
+          ? "px-4 py-3 border-b-2 border-slate-900 text-slate-900 whitespace-nowrap"
+          : "px-4 py-3 border-b-2 border-transparent text-gray-500 whitespace-nowrap";
+      });
+    };
+
+    function compressImg(file, maxW = 900, quality = 0.82) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let w = img.width, h = img.height;
+            if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    window.handleItemImageUpload = async function(e) {
+      const f = e.target.files[0];
+      if (!f) return;
+      pendingItemImage = await compressImg(f, 800, 0.8);
+      const prev = document.getElementById("itemImagePreview");
+      prev.src = pendingItemImage;
+      prev.classList.remove("hidden");
+    };
+
+    window.handleDailyBannerUpload = async function(e) {
+      const f = e.target.files[0];
+      if (!f) return;
+      pendingDailyBannerImage = await compressImg(f, 1200, 0.85);
+      showToast("Imagem panorâmica carregada!");
+    };
+
+    window.handleTotemBannerUpload = async function(e) {
+      const f = e.target.files[0];
+      if (!f) return;
+      pendingTotemBannerImage = await compressImg(f, 1000, 0.82);
+      showToast("Imagem do banner totem carregada!");
+    };
+
+    window.handleSaveMenuItem = async function(e) {
+      e.preventDefault();
+      const editId = document.getElementById("editItemId").value;
+      const existing = editId ? menuItems.find(m => m.id === editId) : null;
+
+      const payload = {
+        title: document.getElementById("itemTitle").value.trim(),
+        category: document.getElementById("itemCategory").value,
+        price: document.getElementById("itemPrice").value.trim(),
+        oldPrice: document.getElementById("itemOldPrice").value.trim(),
+        description: document.getElementById("itemDesc").value.trim(),
+        available: document.getElementById("itemAvailable").checked,
+        imageData: pendingItemImage || (existing ? existing.imageData : ""),
+        timestamp: existing ? existing.timestamp : Date.now()
+      };
+
+      const targetRef = editId ? ref(db, `menu_items/${editId}`) : push(ref(db, "menu_items"));
+      await set(targetRef, payload);
+      resetMenuItemForm();
+      showToast("Item salvo no cardápio!");
+    };
+
+    window.startEditMenuItem = function(id) {
+      const item = menuItems.find(m => m.id === id);
+      if (!item) return;
+      document.getElementById("editItemId").value = item.id;
+      document.getElementById("itemFormTitle").textContent = "Editando Item";
+      document.getElementById("itemTitle").value = item.title || "";
+      document.getElementById("itemCategory").value = item.category || "combos";
+      document.getElementById("itemPrice").value = item.price || "";
+      document.getElementById("itemOldPrice").value = item.oldPrice || "";
+      document.getElementById("itemDesc").value = item.description || "";
+      document.getElementById("itemAvailable").checked = item.available !== false;
+      pendingItemImage = item.imageData || "";
+      if (pendingItemImage) {
+        const prev = document.getElementById("itemImagePreview");
+        prev.src = pendingItemImage;
+        prev.classList.remove("hidden");
+      }
+    };
+
+    window.resetMenuItemForm = function() {
+      document.getElementById("editItemId").value = "";
+      document.getElementById("itemFormTitle").textContent = "Novo Item do Cardápio";
+      document.getElementById("itemTitle").value = "";
+      document.getElementById("itemPrice").value = "";
+      document.getElementById("itemOldPrice").value = "";
+      document.getElementById("itemDesc").value = "";
+      document.getElementById("itemImageInput").value = "";
+      document.getElementById("itemImagePreview").classList.add("hidden");
+      pendingItemImage = "";
+    };
+
+    window.toggleItemAvailability = async function(id, currentAvail) {
+      await update(ref(db, `menu_items/${id}`), { available: !currentAvail });
+      showToast(!currentAvail ? "Marcado como disponível" : "Marcado como esgotado");
+    };
+
+    window.deleteMenuItem = async function(id) {
+      if (!confirm("Excluir este item do cardápio?")) return;
+      await remove(ref(db, `menu_items/${id}`));
+      showToast("Item removido");
+    };
+
+    function renderAdminItemsList() {
+      const box = document.getElementById("adminItemsList");
+      box.innerHTML = menuItems.map(m => {
+        const avail = m.available !== false;
+        return `
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+            <div class="min-w-0">
+              <p class="font-black text-slate-900 truncate">${m.title} <span class="text-emerald-700">(${formatBRL(parsePrice(m.price))})</span></p>
+              <p class="text-[10px] text-gray-500 uppercase">${m.category} • ${avail ? "Disponível" : "Esgotado"}</p>
+            </div>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button type="button" onclick="toggleItemAvailability('${m.id}', ${avail})" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-900 font-bold text-[10px]">
+                ${avail ? "Esgotar" : "Ativar"}
+              </button>
+              <button type="button" onclick="startEditMenuItem('${m.id}')" class="p-1.5 rounded-lg bg-blue-50 text-blue-700"><i class="fa-solid fa-pen"></i></button>
+              <button type="button" onclick="deleteMenuItem('${m.id}')" class="p-1.5 rounded-lg bg-red-50 text-red-600"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    window.handleSaveRestaurantConfig = async function(e) {
+      e.preventDefault();
+      await set(ref(db, "restaurant_config"), {
+        ...storeConfig,
+        storeName: (document.getElementById("cfgStoreName").value || "").trim() || storeConfig.storeName,
+        dailyTitle: (document.getElementById("cfgDailyTitle").value || "").trim(),
+        dailyImage: pendingDailyBannerImage || storeConfig.dailyImage || ""
+      });
+      showToast("Sugestão do dia salva!");
+    };
+
+    window.handleSaveTotemBanner = async function(e) {
+      e.preventDefault();
+      if (!pendingTotemBannerImage) {
+        showToast("Selecione uma imagem para o banner totem.");
+        return;
+      }
+      await push(ref(db, "totem_banners"), {
+        title: document.getElementById("totemTitle").value.trim(),
+        subtitle: document.getElementById("totemSubtitle").value.trim(),
+        imageData: pendingTotemBannerImage,
+        timestamp: Date.now()
+      });
+      document.getElementById("totemTitle").value = "";
+      document.getElementById("totemSubtitle").value = "";
+      pendingTotemBannerImage = "";
+      showToast("Banner totem adicionado!");
+    };
+
+    window.deleteTotemBanner = async function(id) {
+      await remove(ref(db, `totem_banners/${id}`));
+      showToast("Banner removido");
+    };
+
+    function renderAdminTotemBanners() {
+      const box = document.getElementById("adminTotemBannersList");
+      box.innerHTML = totemBanners.map(b => `
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+          <span class="font-bold truncate">${b.title}</span>
+          <button type="button" onclick="deleteTotemBanner('${b.id}')" class="text-red-600 p-1"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join("");
+    }
+
+    window.generateTableQrCode = function() {
+      const tbl = (document.getElementById("qrTableInput").value || "01").trim();
+      const base = window.location.origin + window.location.pathname;
+      const targetUrl = `${base}?mesa=${encodeURIComponent(tbl)}`;
+      const box = document.getElementById("tableQrBox");
+      box.innerHTML = "";
+      if (typeof QRCode !== "undefined") {
+        new QRCode(box, { text: targetUrl, width: 150, height: 150 });
+      }
+      document.getElementById("tableQrUrlText").textContent = targetUrl;
+    };
+
+    window.closeModal = function(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.replace("flex", "hidden");
+    };
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.remove("opacity-0");
+      setTimeout(() => t.classList.add("opacity-0"), 2800);
+    }
+
+    updateTableUI();
+    renderCategoryTabs();
+  </script>
+</body>
 </html>
