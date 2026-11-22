@@ -19,9 +19,9 @@
 
   <!-- SELO FIXO NÃO EDITÁVEL NO TOPO: MESA + NOME + CONTATO -->
   <div id="fixedClientBadgeBar" class="sticky top-0 z-40 bg-[#111827] text-white border-b border-amber-400/30 shadow-md">
-    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3">
+    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 min-w-0">
-        <span id="lockedTablePill" class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-lg whitespace-nowrap select-none">
+        <span id="lockedTablePill" class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full whitespace-nowrap select-none">
           Mesa 01
         </span>
         <div class="min-w-0 select-none">
@@ -29,13 +29,30 @@
           <p id="lockedClientPhone" class="text-[11px] text-amber-200 font-semibold truncate"></p>
         </div>
       </div>
-      <div class="flex items-center gap-2 flex-shrink-0">
-        <button type="button" onclick="toggleBellSound()" id="bellToggleBtn" title="Som do sino quando pronto"
-          class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold flex items-center gap-1">
-          <i id="bellIcon" class="fa-solid fa-bell text-amber-400"></i>
-          <span id="bellLabel" class="hidden sm:inline">Sino</span>
+
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <button type="button" onclick="toggleBellSound()" id="bellSoundBtn" title="Som do sino quando pedido ficar pronto"
+          class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs text-amber-300">
+          <i id="bellSoundIcon" class="fa-solid fa-bell"></i>
+        </button>
+        <button type="button" onclick="openOrdersModal()"
+          class="px-2.5 py-1.5 rounded-xl bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/40 text-amber-300 text-[11px] font-extrabold flex items-center gap-1 whitespace-nowrap">
+          <i class="fa-solid fa-receipt"></i>
+          <span>Status (<span id="myOrdersCount">0</span>)</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- BANNER DE ALERTA QUANDO PEDIDO FICAR PRONTO -->
+  <div id="readyOrderBanner" class="hidden bg-emerald-600 text-white border-b border-emerald-400">
+    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-xs sm:text-sm font-black">
+        <i class="fa-solid fa-bell fa-shake text-amber-300"></i>
+        <span id="readyOrderBannerText">Seu pedido está PRONTO!</span>
+      </div>
+      <button type="button" onclick="document.getElementById('readyOrderBanner').classList.add('hidden')"
+        class="text-xs font-bold bg-black/20 px-2.5 py-1 rounded-lg">OK</button>
     </div>
   </div>
 
@@ -47,7 +64,7 @@
         <p id="storeSubtitleText" class="text-xs text-gray-500 truncate">Faça seu pedido direto da mesa</p>
       </div>
 
-      <div id="headerCustomBannerBox" class="hidden rounded-xl overflow-hidden border border-gray-200 bg-slate-900 relative">
+      <div id="headerCustomBannerBox" class="hidden rounded-2xl overflow-hidden border border-gray-200 bg-slate-900 relative">
         <img id="headerCustomBannerImg" src="" alt="Cabeçalho" class="w-full h-32 sm:h-44 lg:h-52 object-cover block" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex items-end p-3 sm:p-4">
           <p id="headerCustomBannerCaption" class="text-white font-black text-sm sm:text-lg"></p>
@@ -62,7 +79,7 @@
           <span class="text-[10px] font-semibold text-gray-400">Arraste para os lados • 5s</span>
         </div>
 
-        <div class="relative rounded-xl overflow-hidden border border-gray-200 bg-slate-900">
+        <div class="relative rounded-2xl overflow-hidden border border-gray-200 bg-slate-900">
           <div id="panoramaTrack"
             onscroll="handlePanoramaScroll()"
             ontouchstart="pauseCarouselTemp()"
@@ -75,49 +92,52 @@
     </div>
   </header>
 
+  <!-- VITRINE DO CLIENTE -->
   <main class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 pt-3 space-y-4">
+    <section class="bg-white rounded-2xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
+      <div class="flex items-center gap-2">
+        <div class="relative flex items-center flex-1">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-xs"></i>
+          <input type="search" id="menuSearchInput" oninput="renderMenu()"
+            placeholder="Buscar prato, combo, lanche, bebida ou promoção..."
+            class="w-full bg-slate-100 text-slate-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+        </div>
 
-    <!-- CAMPO DE STATUS DOS PEDIDOS ENVIADOS (SEM EXCLUSÃO APÓS ENVIO) -->
-    <section id="orderStatusSection" class="bg-white rounded-xl border border-gray-200 p-3.5 shadow-2xs space-y-2.5 hidden">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
-          <i class="fa-solid fa-receipt text-amber-500"></i>
-          <span>Status dos Seus Pedidos</span>
-        </h2>
-        <span class="text-[10px] font-semibold text-gray-400">Atualização automática</span>
+        <!-- ALTERNADOR DE LAYOUT: GRADE OU LISTA -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 flex-shrink-0">
+          <button type="button" onclick="setFeedLayout('grid')" id="layoutGridBtn" title="Visualização em Grade"
+            class="px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 bg-[#111827] text-amber-400">
+            <i class="fa-solid fa-grip"></i>
+            <span class="hidden sm:inline">Grade</span>
+          </button>
+          <button type="button" onclick="setFeedLayout('list')" id="layoutListBtn" title="Visualização em Lista"
+            class="px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 text-slate-600">
+            <i class="fa-solid fa-list"></i>
+            <span class="hidden sm:inline">Lista</span>
+          </button>
+        </div>
       </div>
-      <div id="myOrdersStatusList" class="space-y-2"></div>
-    </section>
 
-    <!-- BUSCA + CATEGORIAS -->
-    <section class="bg-white rounded-xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
-      <div class="relative flex items-center">
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-xs"></i>
-        <input type="search" id="menuSearchInput" oninput="renderMenu()"
-          placeholder="Buscar prato, combo, lanche, bebida ou promoção..."
-          class="w-full bg-slate-100 text-slate-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
-      </div>
       <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
     </section>
 
-    <!-- GRADE MAIOR COM PONTAS LEVEMENTE ARREDONDADAS -->
+    <!-- CONTAINER DE ITENS (GRADE LEVEMENTE MAIOR OU LISTA) -->
     <section id="menuItemsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-      <div class="col-span-full py-16 text-center text-gray-400 bg-white rounded-xl border border-gray-200">
+      <div class="col-span-full py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-200">
         <i class="fa-solid fa-circle-notch fa-spin text-2xl text-amber-500 mb-2"></i>
         <p class="text-xs font-semibold">Carregando cardápio...</p>
       </div>
     </section>
-
   </main>
 
-  <!-- BARRA FLUTUANTE DO PEDIDO (ANTES DO ENVIO) -->
+  <!-- SACOLA FLUTUANTE (ANTES DO ENVIO) -->
   <div id="cartBar" class="fixed bottom-3 inset-x-3 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-4xl lg:max-w-6xl z-30 hidden">
     <button type="button" onclick="openCartModal()"
-      class="w-full bg-[#111827] hover:bg-slate-800 text-white rounded-xl px-4 py-3.5 shadow-2xl border border-amber-400/40 flex items-center justify-between gap-3 active:scale-[0.99] transition">
+      class="w-full bg-[#111827] hover:bg-slate-800 text-white rounded-2xl px-4 py-3.5 shadow-2xl border border-amber-400/40 flex items-center justify-between gap-3 active:scale-[0.99] transition">
       <div class="flex items-center gap-2.5">
-        <span id="cartCountBadge" class="w-7 h-7 rounded-lg bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center">0</span>
+        <span id="cartCountBadge" class="w-7 h-7 rounded-xl bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center">0</span>
         <div class="text-left">
-          <p class="text-xs sm:text-sm font-black leading-tight">Ver Pedido (Antes do Envio)</p>
+          <p class="text-xs sm:text-sm font-black leading-tight">Ver Pedido (Não enviado)</p>
           <p id="cartTableSummary" class="text-[10px] text-amber-300 font-semibold">Mesa 01</p>
         </div>
       </div>
@@ -127,9 +147,9 @@
 
   <!-- MODAL OBRIGATÓRIO AO ABRIR QR CODE: NOME + CONTATO -->
   <div id="clientOnboardingModal" class="fixed inset-0 z-50 bg-black/80 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div>
-        <span id="onboardingTableBadge" class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-lg">Mesa 01</span>
+        <span id="onboardingTableBadge" class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full">Mesa 01</span>
         <h2 class="font-black text-base text-slate-900 mt-2">Informe seus dados para pedir</h2>
         <p class="text-xs text-gray-500 mt-0.5">Eles ficarão fixos no topo desta mesa.</p>
       </div>
@@ -154,7 +174,7 @@
 
   <!-- MODAL DETALHES DO ITEM (ATÉ 10 FOTOS + VÍDEO 20S) -->
   <div id="itemDetailModal" class="fixed inset-0 z-50 bg-black/75 hidden items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-xl rounded-t-2xl sm:rounded-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+    <div class="bg-white w-full max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3 bg-[#111827] text-white flex items-center justify-between">
         <span id="detailCategoryTag" class="text-[11px] font-black uppercase tracking-wider text-amber-400">Item</span>
         <button onclick="closeModal('itemDetailModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -163,19 +183,17 @@
     </div>
   </div>
 
-  <!-- MODAL DO PEDIDO ANTES DO ENVIO (PERMITE EXCLUIR ITENS/PEDIDO ANTES DE ENVIAR) -->
+  <!-- MODAL SACOLA (PERMITE EXCLUIR ANTES DO ENVIO) -->
   <div id="cartModal" class="fixed inset-0 z-50 bg-black/65 hidden items-end sm:items-center justify-center p-3 sm:p-4">
-    <div class="bg-white w-full max-w-lg rounded-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div class="bg-white w-full max-w-lg rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3.5 bg-[#111827] text-white flex items-center justify-between">
         <div>
-          <h3 class="font-black text-sm">Pedido • <span id="modalCartTableLabel" class="text-amber-400">Mesa 01</span></h3>
+          <h3 class="font-black text-sm">Pedido em Montagem • <span id="modalCartTableLabel" class="text-amber-400">Mesa 01</span></h3>
           <p id="modalCartClientSummary" class="text-[10px] text-gray-300"></p>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" onclick="discardDraftOrder()" title="Excluir pedido antes do envio"
-            class="px-2.5 py-1 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 text-[11px] font-bold flex items-center gap-1">
-            <i class="fa-solid fa-trash"></i>
-            <span>Excluir</span>
+          <button type="button" onclick="discardDraftOrder()" class="text-[11px] font-bold bg-red-600/20 text-red-300 border border-red-400/30 px-2.5 py-1 rounded-lg">
+            Excluir pedido
           </button>
           <button onclick="closeModal('cartModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
@@ -189,19 +207,38 @@
           <input type="text" id="orderGeneralNoteInput" placeholder="Ex: sem cebola, ponto da carne..."
             class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:border-slate-900" />
         </div>
-        <div class="flex items-center justify-between pt-1">
+        <p class="text-[10px] text-gray-500">Após enviar, o pedido não poderá mais ser excluído.</p>
+        <div class="flex items-center justify-between pt-0.5">
           <span class="text-xs font-bold text-slate-600">Total</span>
           <span id="modalCartTotal" class="text-lg font-black text-slate-900">R$ 0,00</span>
         </div>
         <button type="button" id="sendOrderBtn" onclick="submitOrder()"
           class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl text-sm shadow-md">
-          Enviar Pedido (Após envio não poderá excluir)
+          Enviar Pedido
         </button>
       </div>
     </div>
   </div>
 
-  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg opacity-0 pointer-events-none transition-opacity duration-200"></div>
+  <!-- MODAL STATUS DOS PEDIDOS ENVIADOS (SEM EXCLUIR APÓS ENVIO + SINO QUANDO PRONTO) -->
+  <div id="ordersStatusModal" class="fixed inset-0 z-50 bg-black/65 hidden items-end sm:items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-4 py-3.5 bg-[#111827] text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-bell text-amber-400"></i>
+          <div>
+            <h3 class="font-black text-sm">Status dos Pedidos • <span id="statusModalTable" class="text-amber-400">Mesa 01</span></h3>
+            <p class="text-[10px] text-gray-300">Pedidos enviados não podem ser excluídos</p>
+          </div>
+        </div>
+        <button onclick="closeModal('ordersStatusModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div id="clientOrdersStatusList" class="p-4 overflow-y-auto space-y-2.5 flex-1"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-200"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -236,18 +273,21 @@
     sessionStorage.setItem("mesa_qrcode_sessao", fixedTable);
 
     let lockedClient = JSON.parse(sessionStorage.getItem(`cliente_selo_mesa_${fixedTable}`) || "null");
+    let mySentOrderIds = JSON.parse(sessionStorage.getItem(`pedidos_enviados_mesa_${fixedTable}`) || "[]");
+    let notifiedReadyIds = new Set(JSON.parse(sessionStorage.getItem(`notificados_prontos_${fixedTable}`) || "[]"));
 
     let currentCategory = "all";
+    let feedLayout = localStorage.getItem("layout_cardapio_dg") || "grid";
+    let bellSoundEnabled = localStorage.getItem("sino_pedido_pronto") !== "off";
+
     let menuItems = [];
     let panoramaSlides = [];
+    let allOrders = [];
     let cart = [];
+
     let carouselIndex = 0;
     let carouselTimer = null;
     let carouselPauseUntil = 0;
-
-    let bellEnabled = true;
-    const notifiedReadyIds = new Set(JSON.parse(sessionStorage.getItem("pedidos_pronto_notificados") || "[]"));
-    let firstOrdersSnapshot = true;
 
     function parsePrice(val) {
       if (!val) return 0;
@@ -260,48 +300,49 @@
       return (num || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
-    // SINO SONORO QUANDO PEDIDO ESTIVER PRONTO (WEB AUDIO API)
-    function playReadyBell() {
-      if (!bellEnabled) return;
+    // ALERTA SONORO DE SINO QUANDO PEDIDO FICAR PRONTO
+    function playReadyBellSound() {
+      if (!bellSoundEnabled) return;
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         const ctx = new AudioCtx();
-        const now = ctx.currentTime;
-
-        const playChime = (freq, startOffset, duration) => {
+        const notes = [880, 1174.66, 880];
+        notes.forEach((freq, i) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = "sine";
-          osc.frequency.setValueAtTime(freq, now + startOffset);
-          gain.gain.setValueAtTime(0.001, now + startOffset);
-          gain.gain.exponentialRampToValueAtTime(0.25, now + startOffset + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + startOffset + duration);
+          osc.frequency.value = freq;
+          const start = ctx.currentTime + i * 0.16;
+          gain.gain.setValueAtTime(0.001, start);
+          gain.gain.exponentialRampToValueAtTime(0.22, start + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
           osc.connect(gain);
           gain.connect(ctx.destination);
-          osc.start(now + startOffset);
-          osc.stop(now + startOffset + duration);
-        };
-
-        playChime(1046.5, 0, 0.45);
-        playChime(1318.5, 0.18, 0.55);
-        setTimeout(() => ctx.close(), 1200);
-      } catch (e) {
-        // Silencia caso bloqueio de áudio ocorra antes de interação
-      }
+          osc.start(start);
+          osc.stop(start + 0.36);
+        });
+      } catch (e) {}
     }
 
     window.toggleBellSound = function() {
-      bellEnabled = !bellEnabled;
-      document.getElementById("bellIcon").className = bellEnabled
-        ? "fa-solid fa-bell text-amber-400"
-        : "fa-solid fa-bell-slash text-gray-400";
-      showToast(bellEnabled ? "Sino de pedido pronto ativado" : "Sino silenciado");
+      bellSoundEnabled = !bellSoundEnabled;
+      localStorage.setItem("sino_pedido_pronto", bellSoundEnabled ? "on" : "off");
+      updateBellButton();
+      if (bellSoundEnabled) playReadyBellSound();
+      showToast(bellSoundEnabled ? "Alerta de sino ativado" : "Alerta de sino silenciado");
     };
+
+    function updateBellButton() {
+      const icon = document.getElementById("bellSoundIcon");
+      if (!icon) return;
+      icon.className = bellSoundEnabled ? "fa-solid fa-bell" : "fa-solid fa-bell-slash text-gray-400";
+    }
 
     function renderLockedBadge() {
       document.getElementById("lockedTablePill").textContent = `Mesa ${fixedTable}`;
       document.getElementById("cartTableSummary").textContent = `Mesa ${fixedTable}`;
       document.getElementById("modalCartTableLabel").textContent = `Mesa ${fixedTable}`;
+      document.getElementById("statusModalTable").textContent = `Mesa ${fixedTable}`;
       document.getElementById("onboardingTableBadge").textContent = `Mesa ${fixedTable}`;
 
       if (lockedClient && lockedClient.fullName && lockedClient.phone) {
@@ -320,7 +361,6 @@
       const fullName = (document.getElementById("onboardNameInput").value || "").trim();
       const phone = (document.getElementById("onboardPhoneInput").value || "").trim();
       if (!fullName || !phone) return;
-
       lockedClient = { fullName, phone };
       sessionStorage.setItem(`cliente_selo_mesa_${fixedTable}`, JSON.stringify(lockedClient));
       renderLockedBadge();
@@ -355,73 +395,84 @@
       renderMenu();
     });
 
-    // STATUS DOS PEDIDOS DA MESA + ALERTA DE SINO QUANDO PRONTO
     onValue(ref(db, "orders"), (snap) => {
       const val = snap.val();
-      const all = val ? Object.entries(val).map(([id, v]) => ({ id, ...v })) : [];
+      allOrders = val
+        ? Object.entries(val).map(([id, v]) => ({ id, ...v })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        : [];
+      checkReadyOrdersAndRenderStatus();
+    });
 
-      const mine = all
-        .filter(o => {
-          const sameTable = String(o.tableNumber || "") === String(fixedTable);
-          if (!sameTable) return false;
-          if (lockedClient && lockedClient.fullName) {
-            return (o.customerName || "").trim().toLowerCase() === lockedClient.fullName.trim().toLowerCase();
-          }
-          return true;
-        })
-        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    function getMyTableOrders() {
+      return allOrders.filter(o =>
+        mySentOrderIds.includes(o.id) ||
+        (String(o.tableNumber || "") === String(fixedTable) && lockedClient && o.customerName === lockedClient.fullName)
+      );
+    }
 
-      let triggeredBell = false;
+    function checkReadyOrdersAndRenderStatus() {
+      const mine = getMyTableOrders();
+      document.getElementById("myOrdersCount").textContent = mine.length;
+
+      let newlyReady = null;
       mine.forEach(o => {
         if (o.status === "pronto" && !notifiedReadyIds.has(o.id)) {
           notifiedReadyIds.add(o.id);
-          sessionStorage.setItem("pedidos_pronto_notificados", JSON.stringify([...notifiedReadyIds]));
-          if (!firstOrdersSnapshot) {
-            triggeredBell = true;
-          }
+          newlyReady = o;
         }
       });
-      firstOrdersSnapshot = false;
 
-      if (triggeredBell) {
-        playReadyBell();
-        showToast("SINO! Seu pedido está PRONTO!");
+      if (newlyReady) {
+        sessionStorage.setItem(`notificados_prontos_${fixedTable}`, JSON.stringify([...notifiedReadyIds]));
+        document.getElementById("readyOrderBannerText").textContent = `Mesa ${fixedTable}: Seu pedido está PRONTO!`;
+        document.getElementById("readyOrderBanner").classList.remove("hidden");
+        playReadyBellSound();
       }
 
-      renderMyOrdersStatus(mine);
-    });
+      renderOrdersStatusModal(mine);
+    }
 
-    function renderMyOrdersStatus(mine) {
-      const section = document.getElementById("orderStatusSection");
-      const list = document.getElementById("myOrdersStatusList");
+    window.openOrdersModal = function() {
+      renderOrdersStatusModal(getMyTableOrders());
+      document.getElementById("ordersStatusModal").classList.replace("hidden", "flex");
+    };
 
+    function renderOrdersStatusModal(mine) {
+      const box = document.getElementById("clientOrdersStatusList");
+      if (!box) return;
       if (!mine.length) {
-        section.classList.add("hidden");
+        box.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-slate-50 rounded-2xl border">Nenhum pedido enviado nesta mesa ainda.</div>`;
         return;
       }
 
-      section.classList.remove("hidden");
-
-      const statusMeta = {
-        novo: { label: "Novo • Enviado", cls: "bg-amber-100 text-amber-900 border-amber-300" },
-        preparo: { label: "Em preparo", cls: "bg-blue-100 text-blue-900 border-blue-300" },
-        pronto: { label: "PRONTO! Retire / Aguarde na mesa", cls: "bg-emerald-100 text-emerald-950 border-emerald-400 animate-pulse" },
-        finalizado: { label: "Finalizado", cls: "bg-gray-100 text-gray-600 border-gray-200" }
+      const statusInfo = {
+        novo: { label: "Novo • Aguardando aceite", cls: "bg-amber-100 text-amber-900" },
+        preparo: { label: "Em preparo", cls: "bg-blue-100 text-blue-900" },
+        pronto: { label: "Pronto • Sino disparado!", cls: "bg-emerald-100 text-emerald-900" },
+        finalizado: { label: "Finalizado", cls: "bg-gray-200 text-gray-600" }
       };
 
-      list.innerHTML = mine.map(o => {
-        const meta = statusMeta[o.status] || statusMeta.novo;
+      box.innerHTML = mine.map(o => {
+        const st = statusInfo[o.status] || statusInfo.novo;
         const hora = o.createdAt ? new Date(o.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
-        const resumoItens = (o.items || []).map(it => `${it.qty}x ${it.title}`).join(", ");
         return `
-          <div class="p-3 rounded-xl border ${o.status === 'pronto' ? 'border-emerald-400 bg-emerald-50/50' : 'border-gray-200 bg-slate-50'} flex items-center justify-between gap-2.5">
-            <div class="min-w-0">
-              <p class="text-xs font-black text-slate-900 truncate">${resumoItens || "Pedido"}</p>
-              <p class="text-[11px] text-gray-500 truncate">${hora} • Total: ${formatBRL(o.total)}</p>
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-bold text-gray-500">Enviado às ${hora}</span>
+              <span class="text-[10px] font-black px-2.5 py-1 rounded-full ${st.cls}">${st.label}</span>
             </div>
-            <span class="text-[11px] font-black px-2.5 py-1 rounded-lg border whitespace-nowrap ${meta.cls}">
-              ${o.status === 'pronto' ? '<i class="fa-solid fa-bell mr-1"></i>' : ''}${meta.label}
-            </span>
+            <div class="bg-white rounded-xl p-2.5 border text-xs space-y-1">
+              ${(o.items || []).map(it => `
+                <div class="flex justify-between gap-2">
+                  <span><strong>${it.qty}x</strong> ${it.title}${it.obs ? ` <em class="text-amber-700">(${it.obs})</em>` : ""}</span>
+                  <span class="font-bold">${formatBRL((it.unitPrice || 0) * (it.qty || 1))}</span>
+                </div>
+              `).join("")}
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[10px] text-gray-400">Exclusão bloqueada após envio</span>
+              <span class="font-black text-emerald-700">Total: ${formatBRL(o.total)}</span>
+            </div>
           </div>
         `;
       }).join("");
@@ -485,10 +536,23 @@
       });
     }
 
+    // LAYOUT GRADE (LEVEMENTE MAIOR) OU LISTA
+    window.setFeedLayout = function(mode) {
+      feedLayout = mode === "list" ? "list" : "grid";
+      localStorage.setItem("layout_cardapio_dg", feedLayout);
+      document.getElementById("layoutGridBtn").className = feedLayout === "grid"
+        ? "px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 bg-[#111827] text-amber-400"
+        : "px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 text-slate-600";
+      document.getElementById("layoutListBtn").className = feedLayout === "list"
+        ? "px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 bg-[#111827] text-amber-400"
+        : "px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 text-slate-600";
+      renderMenu();
+    };
+
     function renderCategoryTabs() {
       document.getElementById("categoryTabs").innerHTML = CATEGORIES.map(cat => `
         <button type="button" onclick="filterByCategory('${cat.id}')"
-          class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold whitespace-nowrap transition ${currentCategory === cat.id ? 'bg-[#111827] text-amber-400' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+          class="px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition ${currentCategory === cat.id ? 'bg-[#111827] text-amber-400' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
           ${cat.label}
         </button>
       `).join("");
@@ -505,6 +569,11 @@
     function renderMenu() {
       const container = document.getElementById("menuItemsContainer");
       const q = (document.getElementById("menuSearchInput").value || "").trim().toLowerCase();
+
+      container.className = feedLayout === "list"
+        ? "flex flex-col gap-3"
+        : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4";
+
       const list = menuItems.filter(item => {
         const matchCat = currentCategory === "all" || item.category === currentCategory;
         const matchQ = !q || (item.title || "").toLowerCase().includes(q) || (item.description || "").toLowerCase().includes(q);
@@ -512,7 +581,7 @@
       });
 
       if (!list.length) {
-        container.innerHTML = `<div class="col-span-full py-14 text-center text-gray-400 bg-white rounded-xl border border-gray-200 text-xs font-semibold">Nenhum item encontrado.</div>`;
+        container.innerHTML = `<div class="col-span-full py-14 text-center text-gray-400 bg-white rounded-2xl border border-gray-200 text-xs font-semibold">Nenhum item encontrado.</div>`;
         return;
       }
 
@@ -521,14 +590,46 @@
         const priceNum = parsePrice(item.price);
         const oldNum = parsePrice(item.oldPrice);
         const isSoldOut = item.available === false;
+
+        if (feedLayout === "list") {
+          return `
+            <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs p-2.5 sm:p-3 flex items-center gap-3 ${isSoldOut ? 'opacity-65' : ''}">
+              <div onclick="openItemDetail('${item.id}')" class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 cursor-pointer">
+                <img src="${photos[0]}" alt="${item.title}" class="w-full h-full object-cover" />
+                ${isSoldOut ? `<span class="absolute inset-0 bg-black/55 text-white text-[10px] font-black flex items-center justify-center">ESGOTADO</span>` : ""}
+              </div>
+              <div class="flex-1 min-w-0 space-y-1">
+                <div onclick="openItemDetail('${item.id}')" class="cursor-pointer">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <h3 class="font-black text-sm sm:text-base text-slate-900 truncate">${item.title}</h3>
+                    ${photos.length > 1 ? `<span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-1.5 py-0.5 rounded">${photos.length} fotos</span>` : ""}
+                    ${item.videoData ? `<span class="bg-amber-100 text-amber-900 text-[10px] font-black px-1.5 py-0.5 rounded">Vídeo 20s</span>` : ""}
+                  </div>
+                  ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${item.description}</p>` : ""}
+                </div>
+                <div class="flex items-center justify-between gap-2 pt-1">
+                  <div>
+                    ${oldNum > priceNum ? `<span class="text-[11px] text-gray-400 line-through mr-1">${formatBRL(oldNum)}</span>` : ""}
+                    <span class="text-sm sm:text-base font-black text-emerald-700">${formatBRL(priceNum)}</span>
+                  </div>
+                  <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}')"`}
+                    class="px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1 ${isSoldOut ? 'bg-gray-200 text-gray-400' : 'bg-[#111827] hover:bg-slate-800 text-amber-400'}">
+                    <i class="fa-solid fa-plus"></i><span>${isSoldOut ? "Esgotado" : "Pedir"}</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          `;
+        }
+
         return `
-          <article class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? 'opacity-65' : ''}">
+          <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? 'opacity-65' : ''}">
             <div onclick="openItemDetail('${item.id}')" class="cursor-pointer">
-              <div class="relative h-48 sm:h-52 bg-slate-100 overflow-hidden">
+              <div class="relative h-44 sm:h-52 bg-slate-100 overflow-hidden">
                 <img src="${photos[0]}" alt="${item.title}" class="w-full h-full object-cover" />
                 <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                  ${photos.length > 1 ? `<span class="bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-images mr-0.5"></i>${photos.length}</span>` : ""}
-                  ${item.videoData ? `<span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded"><i class="fa-solid fa-video mr-0.5"></i>20s</span>` : ""}
+                  ${photos.length > 1 ? `<span class="bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-images mr-1"></i>${photos.length}</span>` : ""}
+                  ${item.videoData ? `<span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded"><i class="fa-solid fa-video mr-1"></i>20s</span>` : ""}
                 </div>
                 ${isSoldOut ? `<span class="absolute top-2.5 right-2.5 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded">ESGOTADO</span>` : ""}
               </div>
@@ -560,15 +661,15 @@
       const isSoldOut = item.available === false;
       document.getElementById("detailCategoryTag").textContent = item.category || "Cardápio";
       document.getElementById("itemDetailBody").innerHTML = `
-        <div class="carousel-track flex overflow-x-auto no-scrollbar rounded-xl bg-slate-900 border">
+        <div class="carousel-track flex overflow-x-auto no-scrollbar rounded-2xl bg-slate-900 border">
           ${photos.map((src, idx) => `
             <div class="carousel-slide relative h-60 sm:h-72">
               <img src="${src}" alt="${item.title}" class="w-full h-full object-cover" />
-              <span class="absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded">${idx + 1} / ${photos.length}</span>
+              <span class="absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">${idx + 1} / ${photos.length}</span>
             </div>
           `).join("")}
         </div>
-        ${item.videoData ? `<div class="rounded-xl overflow-hidden bg-black border"><video src="${item.videoData}" controls autoplay muted playsinline class="w-full max-h-60 object-contain"></video></div>` : ""}
+        ${item.videoData ? `<div class="rounded-2xl overflow-hidden bg-black border"><video src="${item.videoData}" controls autoplay muted playsinline class="w-full max-h-60 object-contain"></video></div>` : ""}
         <div class="flex items-start justify-between gap-2 pt-1">
           <div>
             <h3 class="font-black text-base text-slate-900">${item.title}</h3>
@@ -607,12 +708,12 @@
     };
 
     window.removeCartItem = function(idx) {
-      if (!cart[idx]) return;
       cart.splice(idx, 1);
       updateCartBar();
       renderCartModal();
     };
 
+    // EXCLUSÃO PERMITIDA APENAS ANTES DO ENVIO
     window.discardDraftOrder = function() {
       cart = [];
       document.getElementById("orderGeneralNoteInput").value = "";
@@ -635,15 +736,17 @@
     }
 
     window.openCartModal = function() {
+      if (!cart.length) { showToast("Seu pedido está vazio."); return; }
       renderCartModal();
       document.getElementById("cartModal").classList.replace("hidden", "flex");
     };
 
     function renderCartModal() {
+      if (!cart.length) { closeModal("cartModal"); return; }
       document.getElementById("modalCartTotal").textContent = formatBRL(getCartTotal());
       renderLockedBadge();
       document.getElementById("cartItemsList").innerHTML = cart.map((c, idx) => `
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0">
               <p class="text-xs font-black text-slate-900 truncate">${c.title}</p>
@@ -653,7 +756,9 @@
               <button onclick="changeCartQty(${idx}, -1)" class="w-7 h-7 rounded-lg bg-white border font-black text-xs">-</button>
               <span class="text-xs font-black w-5 text-center">${c.qty}</span>
               <button onclick="changeCartQty(${idx}, 1)" class="w-7 h-7 rounded-lg bg-white border font-black text-xs">+</button>
-              <button onclick="removeCartItem(${idx})" title="Remover item" class="w-7 h-7 rounded-lg bg-red-50 text-red-600 text-xs flex items-center justify-center"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="removeCartItem(${idx})" title="Remover item" class="w-7 h-7 rounded-lg bg-red-50 text-red-600 border border-red-200 text-xs flex items-center justify-center">
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </div>
           </div>
           <input type="text" value="${c.obs || ""}" oninput="updateItemNote(${idx}, this.value)"
@@ -668,7 +773,7 @@
       btn.disabled = true;
       btn.textContent = "Enviando...";
       try {
-        await push(ref(db, "orders"), {
+        const created = await push(ref(db, "orders"), {
           tableNumber: fixedTable,
           customerName: lockedClient.fullName,
           customerPhone: lockedClient.phone,
@@ -678,16 +783,23 @@
           status: "novo",
           createdAt: Date.now()
         });
+
+        if (created.key) {
+          mySentOrderIds.push(created.key);
+          sessionStorage.setItem(`pedidos_enviados_mesa_${fixedTable}`, JSON.stringify(mySentOrderIds));
+        }
+
         cart = [];
         document.getElementById("orderGeneralNoteInput").value = "";
         updateCartBar();
         closeModal("cartModal");
-        showToast(`Pedido enviado pela Mesa ${fixedTable}! Não pode mais ser excluído.`);
+        checkReadyOrdersAndRenderStatus();
+        showToast(`Pedido enviado! Não pode mais ser excluído.`);
       } catch (e) {
         showToast("Erro ao enviar pedido.");
       } finally {
         btn.disabled = false;
-        btn.textContent = "Enviar Pedido (Após envio não poderá excluir)";
+        btn.textContent = "Enviar Pedido";
       }
     };
 
@@ -700,11 +812,13 @@
       const t = document.getElementById("toast");
       t.textContent = msg;
       t.classList.remove("opacity-0");
-      setTimeout(() => t.classList.add("opacity-0"), 3200);
+      setTimeout(() => t.classList.add("opacity-0"), 2800);
     }
 
+    updateBellButton();
     renderLockedBadge();
     renderCategoryTabs();
+    setFeedLayout(feedLayout);
   </script>
 </body>
 </html>
