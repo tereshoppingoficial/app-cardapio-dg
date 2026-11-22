@@ -70,10 +70,8 @@
       <img id="headerCustomBannerImg" src="" alt="Banner do Restaurante"
         class="hidden w-full h-full object-cover object-center block select-none" />
 
-      <!-- Degradê editorial contínuo para contraste do texto flutuante -->
       <div id="heroGradientOverlay" class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/15 pointer-events-none"></div>
 
-      <!-- Texto flutuante opcional sobre o banner -->
       <div id="floatingHeaderTexts" class="absolute inset-x-0 bottom-0 max-w-6xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 flex flex-col justify-end pointer-events-none">
         <h1 id="storeNameText" class="font-black text-xl sm:text-3xl lg:text-4xl tracking-tight text-white drop-shadow-md leading-tight">
           CARDÁPIO DIGITAL
@@ -81,20 +79,6 @@
         <p id="storeSubtitleText" class="text-xs sm:text-sm lg:text-base text-amber-300 font-semibold drop-shadow mt-0.5">
           Faça seu pedido direto da mesa
         </p>
-      </div>
-    </div>
-
-    <!-- CARROSSEL PANORÂMICO EM BORDA INFINITA (AUTO 5S + ARRASTE LATERAL) -->
-    <div id="panoramaCarouselSection" class="hidden w-full bg-slate-950 border-t border-white/10">
-      <div class="relative w-full overflow-hidden">
-        <div id="panoramaTrack"
-          onscroll="handlePanoramaScroll()"
-          ontouchstart="pauseCarouselTemp()"
-          onmousedown="pauseCarouselTemp()"
-          class="carousel-track flex overflow-x-auto no-scrollbar scroll-smooth"></div>
-
-        <!-- Indicadores flutuantes na base do carrossel -->
-        <div id="panoramaDots" class="absolute bottom-2.5 inset-x-0 flex items-center justify-center gap-1.5 z-10"></div>
       </div>
     </div>
   </header>
@@ -121,7 +105,7 @@
       </div>
     </section>
 
-    <!-- BUSCA + CATEGORIAS + SELETOR DE LAYOUT (GRADE / LISTA) -->
+    <!-- BUSCA + DEPARTAMENTOS/CATEGORIAS + SELETOR DE LAYOUT (GRADE / LISTA) -->
     <section class="bg-white rounded-2xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
       <div class="flex items-center gap-2">
         <div class="relative flex items-center flex-1">
@@ -131,7 +115,6 @@
             class="w-full bg-slate-100 text-slate-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
         </div>
 
-        <!-- ALTERNAR LAYOUT: GRADE OU LISTA -->
         <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-gray-200 flex-shrink-0" role="group" aria-label="Layout do cardápio">
           <button type="button" id="btnLayoutGrid" onclick="setFeedLayout('grid')" title="Visualizar em Grade"
             class="px-2.5 py-1.5 rounded-lg text-xs font-black bg-[#111827] text-amber-400 transition">
@@ -145,6 +128,19 @@
       </div>
 
       <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
+    </section>
+
+    <!-- CARROSSEL PANORÂMICO POSICIONADO ABAIXO DOS DEPARTAMENTOS (AUTO 5S + ARRASTE LATERAL) -->
+    <section id="panoramaCarouselSection" class="hidden rounded-2xl overflow-hidden bg-slate-950 border border-gray-200 shadow-2xs">
+      <div class="relative w-full overflow-hidden">
+        <div id="panoramaTrack"
+          onscroll="handlePanoramaScroll()"
+          ontouchstart="pauseCarouselTemp()"
+          onmousedown="pauseCarouselTemp()"
+          class="carousel-track flex overflow-x-auto no-scrollbar scroll-smooth"></div>
+
+        <div id="panoramaDots" class="absolute bottom-2.5 inset-x-0 flex items-center justify-center gap-1.5 z-10"></div>
+      </div>
     </section>
 
     <!-- FEED DO CARDÁPIO (GRADE MAIOR LADO A LADO OU LISTA) -->
@@ -318,7 +314,6 @@
     let knownReadyIds = new Set();
     let initialOrdersLoaded = false;
 
-    // MOTOR DE ÁUDIO COM DESBLOQUEIO AUTOMÁTICO NA INTERAÇÃO DO USUÁRIO
     let sharedAudioCtx = null;
 
     function unlockAudioContext() {
@@ -346,7 +341,7 @@
         }
 
         const now = sharedAudioCtx.currentTime;
-        const notes = [880, 1174.66, 1318.51]; // Lá5 -> Ré6 -> Mi6 (toque de sino claro)
+        const notes = [880, 1174.66, 1318.51];
 
         notes.forEach((freq, idx) => {
           const osc = sharedAudioCtx.createOscillator();
@@ -414,7 +409,6 @@
       showToast(`Mesa ${fixedTable} vinculada a ${fullName}`);
     };
 
-    // CABEÇALHO EM BORDA INFINITA + NOME E SUBTÍTULO FLUTUANTES OPCIONAIS
     onValue(ref(db, "restaurant_config"), (snap) => {
       if (!snap.exists()) return;
       const cfg = snap.val();
@@ -602,7 +596,7 @@
       document.getElementById("myOrdersModal").classList.replace("hidden", "flex");
     };
 
-    // CARROSSEL PANORÂMICO EM BORDA INFINITA (5S + ARRASTE)
+    // CARROSSEL PANORÂMICO (5S + ARRASTE)
     function renderPanoramaCarousel() {
       const section = document.getElementById("panoramaCarouselSection");
       const track = document.getElementById("panoramaTrack");
@@ -612,13 +606,11 @@
 
       section.classList.remove("hidden");
       track.innerHTML = panoramaSlides.map(s => `
-        <div class="carousel-slide relative w-full h-44 sm:h-60 lg:h-72 bg-slate-950">
+        <div class="carousel-slide relative w-full h-40 sm:h-52 lg:h-60 bg-slate-950">
           <img src="${s.imageData}" alt="${s.title}" class="w-full h-full object-cover object-center block" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent flex flex-col justify-end pb-7 px-4 sm:px-6">
-            <div class="max-w-6xl w-full mx-auto">
-              <p class="text-white font-black text-base sm:text-xl lg:text-2xl leading-tight drop-shadow">${s.title}</p>
-              ${s.subtitle ? `<p class="text-amber-300 text-xs sm:text-sm font-semibold drop-shadow mt-0.5">${s.subtitle}</p>` : ""}
-            </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent flex flex-col justify-end pb-6 px-4 sm:px-5">
+            <p class="text-white font-black text-sm sm:text-xl leading-tight drop-shadow">${s.title}</p>
+            ${s.subtitle ? `<p class="text-amber-300 text-xs sm:text-sm font-semibold drop-shadow mt-0.5">${s.subtitle}</p>` : ""}
           </div>
         </div>
       `).join("");
@@ -663,7 +655,6 @@
       });
     }
 
-    // LAYOUT DO FEED: GRADE OU LISTA
     window.setFeedLayout = function(mode) {
       feedLayout = mode === "list" ? "list" : "grid";
       localStorage.setItem("cardapio_feed_layout", feedLayout);
