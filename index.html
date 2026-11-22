@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Cardápio Digital • Pedido na Mesa</title>
+  <title>Cardápio da Mesa • Pedido Digital</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
@@ -17,28 +17,25 @@
 </head>
 <body class="bg-[#F5F5F5] text-slate-900 font-sans antialiased pb-28">
 
-  <!-- SELO FIXO NO TOPO: MESA + NOME + CONTATO DO CLIENTE -->
-  <div id="fixedClientSeal" class="sticky top-0 z-40 bg-[#111827] text-white border-b border-amber-400/30 shadow-md">
-    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
+  <!-- SELO FIXO NÃO EDITÁVEL NO TOPO: MESA + NOME + CONTATO -->
+  <div id="fixedClientBadgeBar" class="sticky top-0 z-40 bg-[#111827] text-white border-b border-amber-400/30 shadow-md">
+    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2.5 min-w-0">
-        <span id="sealTableBadge" class="bg-amber-400 text-slate-950 text-xs font-black px-2.5 py-1 rounded-full whitespace-nowrap">
+        <span id="lockedTablePill" class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full whitespace-nowrap select-none">
           Mesa 01
         </span>
-        <div class="min-w-0">
-          <p id="sealClientName" class="text-xs sm:text-sm font-black text-white truncate">Cliente não identificado</p>
-          <p id="sealClientPhone" class="text-[11px] text-amber-200 truncate"></p>
+        <div class="min-w-0 select-none">
+          <p id="lockedClientName" class="text-xs sm:text-sm font-black text-white truncate">Aguardando identificação...</p>
+          <p id="lockedClientPhone" class="text-[11px] text-amber-200 font-semibold truncate"></p>
         </div>
       </div>
-
-      <button type="button" onclick="openClientGateModal(true)"
-        class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[11px] font-bold flex items-center gap-1 flex-shrink-0">
-        <i class="fa-solid fa-pen text-amber-400"></i>
-        <span>Editar</span>
-      </button>
+      <span class="text-[10px] uppercase tracking-wider font-extrabold text-gray-400 whitespace-nowrap select-none">
+        Pedido na Mesa
+      </span>
     </div>
   </div>
 
-  <!-- CABEÇALHO DO ESTABELECIMENTO + CARROSSEL PANORÂMICO (5S + ARRASTE) -->
+  <!-- CABEÇALHO EDITÁVEL + CARROSSEL PANORÂMICO (5S + ARRASTE) -->
   <header class="bg-white border-b border-gray-200 shadow-2xs">
     <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-3 space-y-3">
       <div id="headerTextBox">
@@ -47,7 +44,7 @@
       </div>
 
       <div id="headerCustomBannerBox" class="hidden rounded-2xl overflow-hidden border border-gray-200 bg-slate-900 relative">
-        <img id="headerCustomBannerImg" src="" alt="Banner do Cabeçalho" class="w-full h-32 sm:h-44 lg:h-52 object-cover block" />
+        <img id="headerCustomBannerImg" src="" alt="Cabeçalho" class="w-full h-32 sm:h-44 lg:h-52 object-cover block" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex items-end p-3 sm:p-4">
           <p id="headerCustomBannerCaption" class="text-white font-black text-sm sm:text-lg"></p>
         </div>
@@ -56,9 +53,9 @@
       <div id="panoramaCarouselSection" class="hidden space-y-1.5">
         <div class="flex items-center justify-between px-0.5">
           <span class="text-[11px] font-black uppercase tracking-wider text-slate-700">
-            <i class="fa-solid fa-images text-amber-500 mr-1"></i> Destaques & Sugestões
+            <i class="fa-solid fa-fire text-amber-500 mr-1"></i> Destaques do Dia
           </span>
-          <span class="text-[10px] font-semibold text-gray-400">Arraste para os lados • Auto 5s</span>
+          <span class="text-[10px] font-semibold text-gray-400">Arraste para os lados • 5s</span>
         </div>
 
         <div class="relative rounded-2xl overflow-hidden border border-gray-200 bg-slate-900">
@@ -66,8 +63,7 @@
             onscroll="handlePanoramaScroll()"
             ontouchstart="pauseCarouselTemp()"
             onmousedown="pauseCarouselTemp()"
-            class="carousel-track flex overflow-x-auto no-scrollbar scroll-smooth">
-          </div>
+            class="carousel-track flex overflow-x-auto no-scrollbar scroll-smooth"></div>
         </div>
 
         <div id="panoramaDots" class="flex items-center justify-center gap-1.5 pt-0.5"></div>
@@ -75,7 +71,7 @@
     </div>
   </header>
 
-  <!-- VITRINE: BUSCA + CATEGORIAS + GRADE DE ITENS -->
+  <!-- VITRINE DO CLIENTE -->
   <main class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 pt-3 space-y-4">
     <section class="bg-white rounded-2xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
       <div class="relative flex items-center">
@@ -84,19 +80,18 @@
           placeholder="Buscar prato, combo, lanche, bebida ou promoção..."
           class="w-full bg-slate-100 text-slate-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
       </div>
-
       <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
     </section>
 
     <section id="menuItemsContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
       <div class="col-span-full py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-200">
         <i class="fa-solid fa-circle-notch fa-spin text-2xl text-amber-500 mb-2"></i>
-        <p class="text-xs font-semibold">Carregando vitrine...</p>
+        <p class="text-xs font-semibold">Carregando cardápio...</p>
       </div>
     </section>
   </main>
 
-  <!-- BARRA FLUTUANTE DA SACOLA -->
+  <!-- SACOLA FLUTUANTE -->
   <div id="cartBar" class="fixed bottom-3 inset-x-3 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-4xl lg:max-w-6xl z-30 hidden">
     <button type="button" onclick="openCartModal()"
       class="w-full bg-[#111827] hover:bg-slate-800 text-white rounded-2xl px-4 py-3.5 shadow-2xl border border-amber-400/40 flex items-center justify-between gap-3 active:scale-[0.99] transition">
@@ -111,33 +106,26 @@
     </button>
   </div>
 
-  <!-- MODAL OBRIGATÓRIO DE NOME E CONTATO AO ABRIR O QR CODE -->
-  <div id="clientGateModal" class="fixed inset-0 z-50 bg-black/80 hidden items-center justify-center p-4">
+  <!-- MODAL OBRIGATÓRIO AO ABRIR QR CODE: NOME + CONTATO -->
+  <div id="clientOnboardingModal" class="fixed inset-0 z-50 bg-black/80 hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <span id="gateTableBadge" class="bg-amber-400 text-slate-950 text-[11px] font-black px-2.5 py-0.5 rounded-full">Mesa 01</span>
-          <h2 class="font-black text-base text-slate-900 mt-1.5">Identificação para Pedido</h2>
-          <p class="text-xs text-gray-500">Informe seu nome e contato para iniciar.</p>
-        </div>
-        <button type="button" id="closeGateBtn" onclick="closeClientGateModal()" class="text-gray-400 hover:text-slate-700 p-1 hidden">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+      <div>
+        <span id="onboardingTableBadge" class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full">Mesa 01</span>
+        <h2 class="font-black text-base text-slate-900 mt-2">Informe seus dados para pedir</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Eles ficarão fixos no topo desta mesa.</p>
       </div>
 
-      <form onsubmit="event.preventDefault(); saveClientInfo();" class="space-y-3">
+      <form onsubmit="event.preventDefault(); confirmClientBadge();" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Nome completo *</label>
-          <input type="text" id="clientFullNameInput" required placeholder="Ex: Maria Clara Santos"
+          <input type="text" id="onboardNameInput" required placeholder="Ex: Maria Clara Santos"
             class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-slate-900" />
         </div>
-
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Número para contato (celular) *</label>
-          <input type="tel" id="clientPhoneInput" required placeholder="Ex: (86) 99999-9999"
+          <label class="block text-xs font-bold text-slate-700 mb-1">Contato (celular / WhatsApp) *</label>
+          <input type="tel" id="onboardPhoneInput" required placeholder="Ex: (86) 99999-9999"
             class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-slate-900" />
         </div>
-
         <button type="submit" class="w-full bg-[#111827] hover:bg-slate-800 text-amber-400 font-black py-3 rounded-xl text-sm shadow-md">
           Acessar Cardápio
         </button>
@@ -145,7 +133,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE DETALHES DO ITEM (ATÉ 10 FOTOS + VÍDEO CURTO 20S) -->
+  <!-- MODAL DETALHES DO ITEM (ATÉ 10 FOTOS + VÍDEO 20S) -->
   <div id="itemDetailModal" class="fixed inset-0 z-50 bg-black/75 hidden items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-white w-full max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3 bg-[#111827] text-white flex items-center justify-between">
@@ -156,13 +144,13 @@
     </div>
   </div>
 
-  <!-- MODAL DA SACOLA E ENVIO DO PEDIDO -->
+  <!-- MODAL SACOLA -->
   <div id="cartModal" class="fixed inset-0 z-50 bg-black/65 hidden items-end sm:items-center justify-center p-3 sm:p-4">
     <div class="bg-white w-full max-w-lg rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3.5 bg-[#111827] text-white flex items-center justify-between">
         <div>
-          <h3 class="font-black text-sm">Seu Pedido • <span id="modalCartTableLabel" class="text-amber-400">Mesa 01</span></h3>
-          <p id="modalCartClientLabel" class="text-[10px] text-gray-300"></p>
+          <h3 class="font-black text-sm">Pedido • <span id="modalCartTableLabel" class="text-amber-400">Mesa 01</span></h3>
+          <p id="modalCartClientSummary" class="text-[10px] text-gray-300"></p>
         </div>
         <button onclick="closeModal('cartModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
@@ -171,25 +159,22 @@
 
       <div class="p-4 border-t border-gray-200 bg-slate-50 space-y-3">
         <div>
-          <label class="block text-[11px] font-bold text-slate-700 mb-1">Observações gerais do pedido</label>
-          <input type="text" id="orderGeneralNoteInput" placeholder="Ex: Sem cebola, ponto da carne..."
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Observações do pedido</label>
+          <input type="text" id="orderGeneralNoteInput" placeholder="Ex: sem cebola, ponto da carne..."
             class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:border-slate-900" />
         </div>
-
         <div class="flex items-center justify-between pt-1">
-          <span class="text-xs font-bold text-slate-600">Total do pedido</span>
+          <span class="text-xs font-bold text-slate-600">Total</span>
           <span id="modalCartTotal" class="text-lg font-black text-slate-900">R$ 0,00</span>
         </div>
-
         <button type="button" id="sendOrderBtn" onclick="submitOrder()"
-          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl text-sm shadow-md transition">
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl text-sm shadow-md">
           Enviar Pedido
         </button>
       </div>
     </div>
   </div>
 
-  <!-- TOAST -->
   <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-200"></div>
 
   <script type="module">
@@ -220,23 +205,16 @@
     ];
 
     const urlParams = new URLSearchParams(window.location.search);
-    const fixedTable = (urlParams.get("mesa") || "").trim() || localStorage.getItem("mesa_fixa_qrcode") || "01";
-    localStorage.setItem("mesa_fixa_qrcode", fixedTable);
+    const mesaUrl = (urlParams.get("mesa") || "").trim();
+    const fixedTable = mesaUrl || sessionStorage.getItem("mesa_qrcode_sessao") || "01";
+    sessionStorage.setItem("mesa_qrcode_sessao", fixedTable);
 
-    let clientInfo = JSON.parse(localStorage.getItem("cliente_mesa_info") || "null") || { fullName: "", phone: "" };
+    let lockedClient = JSON.parse(sessionStorage.getItem(`cliente_selo_mesa_${fixedTable}`) || "null");
+
     let currentCategory = "all";
     let menuItems = [];
     let panoramaSlides = [];
     let cart = [];
-
-    let storeConfig = {
-      storeName: "CARDÁPIO DIGITAL",
-      subtitle: "Faça seu pedido direto da mesa",
-      useHeaderBanner: false,
-      headerBannerImage: "",
-      headerBannerCaption: ""
-    };
-
     let carouselIndex = 0;
     let carouselTimer = null;
     let carouselPauseUntil = 0;
@@ -252,56 +230,50 @@
       return (num || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
-    function hasValidClient() {
-      return Boolean((clientInfo.fullName || "").trim() && (clientInfo.phone || "").trim());
-    }
-
-    function updateSealHeader() {
-      document.getElementById("sealTableBadge").textContent = `Mesa ${fixedTable}`;
+    function renderLockedBadge() {
+      document.getElementById("lockedTablePill").textContent = `Mesa ${fixedTable}`;
       document.getElementById("cartTableSummary").textContent = `Mesa ${fixedTable}`;
       document.getElementById("modalCartTableLabel").textContent = `Mesa ${fixedTable}`;
-      document.getElementById("gateTableBadge").textContent = `Mesa ${fixedTable}`;
+      document.getElementById("onboardingTableBadge").textContent = `Mesa ${fixedTable}`;
 
-      if (hasValidClient()) {
-        document.getElementById("sealClientName").textContent = clientInfo.fullName;
-        document.getElementById("sealClientPhone").textContent = clientInfo.phone;
-        document.getElementById("modalCartClientLabel").textContent = `${clientInfo.fullName} • ${clientInfo.phone}`;
+      if (lockedClient && lockedClient.fullName && lockedClient.phone) {
+        document.getElementById("lockedClientName").textContent = lockedClient.fullName;
+        document.getElementById("lockedClientPhone").textContent = lockedClient.phone;
+        document.getElementById("modalCartClientSummary").textContent = `${lockedClient.fullName} • ${lockedClient.phone}`;
       } else {
-        document.getElementById("sealClientName").textContent = "Informe seu nome e contato";
-        document.getElementById("sealClientPhone").textContent = "";
-        document.getElementById("modalCartClientLabel").textContent = "";
+        document.getElementById("lockedClientName").textContent = "Preencha nome e contato";
+        document.getElementById("lockedClientPhone").textContent = "";
+        document.getElementById("onboardingModal")?.classList.replace("hidden", "flex");
+        document.getElementById("clientOnboardingModal").classList.replace("hidden", "flex");
       }
     }
 
-    window.openClientGateModal = function(allowClose = false) {
-      document.getElementById("clientFullNameInput").value = clientInfo.fullName || "";
-      document.getElementById("clientPhoneInput").value = clientInfo.phone || "";
-      document.getElementById("closeGateBtn").classList.toggle("hidden", !allowClose);
-      document.getElementById("clientGateModal").classList.replace("hidden", "flex");
-    };
+    window.confirmClientBadge = function() {
+      if (lockedClient && lockedClient.fullName && lockedClient.phone) return;
+      const fullName = (document.getElementById("onboardNameInput").value || "").trim();
+      const phone = (document.getElementById("onboardPhoneInput").value || "").trim();
+      if (!fullName || !phone) return;
 
-    window.closeClientGateModal = function() {
-      if (!hasValidClient()) return;
-      document.getElementById("clientGateModal").classList.replace("flex", "hidden");
-    };
-
-    window.saveClientInfo = function() {
-      const fullName = (document.getElementById("clientFullNameInput").value || "").trim();
-      const phone = (document.getElementById("clientPhoneInput").value || "").trim();
-      if (!fullName || !phone) {
-        showToast("Preencha nome completo e contato.");
-        return;
-      }
-      clientInfo = { fullName, phone };
-      localStorage.setItem("cliente_mesa_info", JSON.stringify(clientInfo));
-      updateSealHeader();
-      document.getElementById("clientGateModal").classList.replace("flex", "hidden");
-      showToast(`Bem-vindo(a), ${fullName}!`);
+      lockedClient = { fullName, phone };
+      sessionStorage.setItem(`cliente_selo_mesa_${fixedTable}`, JSON.stringify(lockedClient));
+      renderLockedBadge();
+      closeModal("clientOnboardingModal");
+      showToast(`Mesa ${fixedTable} vinculada a ${fullName}`);
     };
 
     onValue(ref(db, "restaurant_config"), (snap) => {
-      if (snap.exists()) storeConfig = { ...storeConfig, ...snap.val() };
-      renderHeader();
+      if (!snap.exists()) return;
+      const cfg = snap.val();
+      document.getElementById("storeNameText").textContent = cfg.storeName || "CARDÁPIO DIGITAL";
+      document.getElementById("storeSubtitleText").textContent = cfg.subtitle || "";
+      const box = document.getElementById("headerCustomBannerBox");
+      if (cfg.useHeaderBanner && cfg.headerBannerImage) {
+        document.getElementById("headerCustomBannerImg").src = cfg.headerBannerImage;
+        document.getElementById("headerCustomBannerCaption").textContent = cfg.headerBannerCaption || "";
+        box.classList.remove("hidden");
+      } else {
+        box.classList.add("hidden");
+      }
     });
 
     onValue(ref(db, "panorama_banners"), (snap) => {
@@ -316,31 +288,12 @@
       renderMenu();
     });
 
-    function renderHeader() {
-      document.getElementById("storeNameText").textContent = storeConfig.storeName || "CARDÁPIO DIGITAL";
-      document.getElementById("storeSubtitleText").textContent = storeConfig.subtitle || "";
-
-      const bannerBox = document.getElementById("headerCustomBannerBox");
-      if (storeConfig.useHeaderBanner && storeConfig.headerBannerImage) {
-        document.getElementById("headerCustomBannerImg").src = storeConfig.headerBannerImage;
-        document.getElementById("headerCustomBannerCaption").textContent = storeConfig.headerBannerCaption || "";
-        bannerBox.classList.remove("hidden");
-      } else {
-        bannerBox.classList.add("hidden");
-      }
-    }
-
     function renderPanoramaCarousel() {
       const section = document.getElementById("panoramaCarouselSection");
       const track = document.getElementById("panoramaTrack");
       const dots = document.getElementById("panoramaDots");
-
       if (carouselTimer) { clearInterval(carouselTimer); carouselTimer = null; }
-
-      if (!panoramaSlides.length) {
-        section.classList.add("hidden");
-        return;
-      }
+      if (!panoramaSlides.length) { section.classList.add("hidden"); return; }
 
       section.classList.remove("hidden");
       track.innerHTML = panoramaSlides.map(s => `
@@ -367,10 +320,7 @@
       }
     }
 
-    window.pauseCarouselTemp = function() {
-      carouselPauseUntil = Date.now() + 7000;
-    };
-
+    window.pauseCarouselTemp = function() { carouselPauseUntil = Date.now() + 7000; };
     window.goToPanoramaSlide = function(idx, pause = true) {
       if (pause) pauseCarouselTemp();
       carouselIndex = idx;
@@ -378,7 +328,6 @@
       if (track) track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" });
       updatePanoramaDots();
     };
-
     window.handlePanoramaScroll = function() {
       pauseCarouselTemp();
       const track = document.getElementById("panoramaTrack");
@@ -389,7 +338,6 @@
         updatePanoramaDots();
       }
     };
-
     function updatePanoramaDots() {
       const dots = document.getElementById("panoramaDots");
       if (!dots) return;
@@ -399,23 +347,15 @@
     }
 
     function renderCategoryTabs() {
-      const box = document.getElementById("categoryTabs");
-      box.innerHTML = CATEGORIES.map(cat => {
-        const active = currentCategory === cat.id;
-        return `
-          <button type="button" onclick="filterByCategory('${cat.id}')"
-            class="px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition ${active ? 'bg-[#111827] text-amber-400' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
-            ${cat.label}
-          </button>
-        `;
-      }).join("");
+      document.getElementById("categoryTabs").innerHTML = CATEGORIES.map(cat => `
+        <button type="button" onclick="filterByCategory('${cat.id}')"
+          class="px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition ${currentCategory === cat.id ? 'bg-[#111827] text-amber-400' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+          ${cat.label}
+        </button>
+      `).join("");
     }
 
-    window.filterByCategory = function(catId) {
-      currentCategory = catId;
-      renderCategoryTabs();
-      renderMenu();
-    };
+    window.filterByCategory = function(catId) { currentCategory = catId; renderCategoryTabs(); renderMenu(); };
 
     function getItemPhotos(item) {
       if (Array.isArray(item.photos) && item.photos.length) return item.photos.slice(0, 10);
@@ -426,12 +366,9 @@
     function renderMenu() {
       const container = document.getElementById("menuItemsContainer");
       const q = (document.getElementById("menuSearchInput").value || "").trim().toLowerCase();
-
       const list = menuItems.filter(item => {
         const matchCat = currentCategory === "all" || item.category === currentCategory;
-        const matchQ = !q ||
-          (item.title || "").toLowerCase().includes(q) ||
-          (item.description || "").toLowerCase().includes(q);
+        const matchQ = !q || (item.title || "").toLowerCase().includes(q) || (item.description || "").toLowerCase().includes(q);
         return matchCat && matchQ;
       });
 
@@ -445,8 +382,6 @@
         const priceNum = parsePrice(item.price);
         const oldNum = parsePrice(item.oldPrice);
         const isSoldOut = item.available === false;
-        const hasVideo = Boolean(item.videoData);
-
         return `
           <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? 'opacity-65' : ''}">
             <div onclick="openItemDetail('${item.id}')" class="cursor-pointer">
@@ -454,27 +389,23 @@
                 <img src="${photos[0]}" alt="${item.title}" class="w-full h-full object-cover" />
                 <div class="absolute top-2 left-2 flex items-center gap-1">
                   ${photos.length > 1 ? `<span class="bg-black/75 text-white text-[10px] font-bold px-1.5 py-0.5 rounded"><i class="fa-solid fa-images mr-0.5"></i>${photos.length}</span>` : ""}
-                  ${hasVideo ? `<span class="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded"><i class="fa-solid fa-video mr-0.5"></i>20s</span>` : ""}
+                  ${item.videoData ? `<span class="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded"><i class="fa-solid fa-video mr-0.5"></i>20s</span>` : ""}
                 </div>
                 ${isSoldOut ? `<span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded">ESGOTADO</span>` : ""}
               </div>
-
               <div class="p-2.5 sm:p-3 space-y-1">
                 <h3 class="font-black text-xs sm:text-sm text-slate-900 leading-snug line-clamp-1">${item.title}</h3>
                 ${item.description ? `<p class="text-[11px] text-gray-500 line-clamp-2">${item.description}</p>` : ""}
               </div>
             </div>
-
             <div class="px-2.5 sm:px-3 pb-2.5 sm:pb-3 pt-1 flex items-center justify-between gap-1.5">
-              <div class="min-w-0">
+              <div>
                 ${oldNum > priceNum ? `<span class="block text-[10px] text-gray-400 line-through">${formatBRL(oldNum)}</span>` : ""}
                 <span class="text-xs sm:text-sm font-black text-emerald-700">${formatBRL(priceNum)}</span>
               </div>
-
               <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}')"`}
-                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black flex items-center gap-1 transition ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#111827] hover:bg-slate-800 text-amber-400 active:scale-95'}">
-                <i class="fa-solid fa-plus"></i>
-                <span>${isSoldOut ? "Esgotado" : "Pedir"}</span>
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black flex items-center gap-1 ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#111827] hover:bg-slate-800 text-amber-400'}">
+                <i class="fa-solid fa-plus"></i><span>${isSoldOut ? "Esgotado" : "Pedir"}</span>
               </button>
             </div>
           </article>
@@ -488,8 +419,7 @@
       const photos = getItemPhotos(item);
       const priceNum = parsePrice(item.price);
       const isSoldOut = item.available === false;
-
-      document.getElementById("detailCategoryTag").textContent = item.category || "Vitrine";
+      document.getElementById("detailCategoryTag").textContent = item.category || "Cardápio";
       document.getElementById("itemDetailBody").innerHTML = `
         <div class="carousel-track flex overflow-x-auto no-scrollbar rounded-2xl bg-slate-900 border">
           ${photos.map((src, idx) => `
@@ -499,14 +429,7 @@
             </div>
           `).join("")}
         </div>
-        ${photos.length > 1 ? `<p class="text-[10px] text-gray-400 text-center">Arraste para ver até ${photos.length} fotos</p>` : ""}
-
-        ${item.videoData ? `
-          <div class="rounded-2xl overflow-hidden bg-black border">
-            <video src="${item.videoData}" controls autoplay muted playsinline class="w-full max-h-60 object-contain"></video>
-          </div>
-        ` : ""}
-
+        ${item.videoData ? `<div class="rounded-2xl overflow-hidden bg-black border"><video src="${item.videoData}" controls autoplay muted playsinline class="w-full max-h-60 object-contain"></video></div>` : ""}
         <div class="flex items-start justify-between gap-2 pt-1">
           <div>
             <h3 class="font-black text-base text-slate-900">${item.title}</h3>
@@ -514,29 +437,24 @@
           </div>
           <span class="text-base font-black text-emerald-700 whitespace-nowrap">${formatBRL(priceNum)}</span>
         </div>
-
         <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}'); closeModal('itemDetailModal');"`}
           class="w-full py-3 rounded-xl font-black text-xs sm:text-sm ${isSoldOut ? 'bg-gray-200 text-gray-400' : 'bg-[#111827] text-amber-400 hover:bg-slate-800'}">
           ${isSoldOut ? "Item Indisponível" : `Adicionar ao Pedido • ${formatBRL(priceNum)}`}
         </button>
       `;
-
       document.getElementById("itemDetailModal").classList.replace("hidden", "flex");
     };
 
     window.addToCart = function(itemId) {
-      if (!hasValidClient()) {
-        openClientGateModal(false);
+      if (!lockedClient || !lockedClient.fullName || !lockedClient.phone) {
+        document.getElementById("clientOnboardingModal").classList.replace("hidden", "flex");
         return;
       }
       const item = menuItems.find(i => i.id === itemId);
       if (!item || item.available === false) return;
       const existing = cart.find(c => c.id === item.id);
-      if (existing) {
-        existing.qty += 1;
-      } else {
-        cart.push({ id: item.id, title: item.title, unitPrice: parsePrice(item.price), qty: 1, obs: "" });
-      }
+      if (existing) existing.qty += 1;
+      else cart.push({ id: item.id, title: item.title, unitPrice: parsePrice(item.price), qty: 1, obs: "" });
       updateCartBar();
       showToast(`Adicionado: ${item.title}`);
     };
@@ -549,13 +467,8 @@
       renderCartModal();
     };
 
-    window.updateItemNote = function(idx, note) {
-      if (cart[idx]) cart[idx].obs = note;
-    };
-
-    function getCartTotal() {
-      return cart.reduce((acc, c) => acc + (c.unitPrice * c.qty), 0);
-    }
+    window.updateItemNote = function(idx, note) { if (cart[idx]) cart[idx].obs = note; };
+    function getCartTotal() { return cart.reduce((acc, c) => acc + (c.unitPrice * c.qty), 0); }
 
     function updateCartBar() {
       const bar = document.getElementById("cartBar");
@@ -564,24 +477,18 @@
       bar.classList.remove("hidden");
       document.getElementById("cartCountBadge").textContent = count;
       document.getElementById("cartTotalText").textContent = formatBRL(getCartTotal());
-      updateSealHeader();
+      renderLockedBadge();
     }
 
     window.openCartModal = function() {
-      if (!hasValidClient()) {
-        openClientGateModal(false);
-        return;
-      }
       renderCartModal();
       document.getElementById("cartModal").classList.replace("hidden", "flex");
     };
 
     function renderCartModal() {
-      const list = document.getElementById("cartItemsList");
       document.getElementById("modalCartTotal").textContent = formatBRL(getCartTotal());
-      updateSealHeader();
-
-      list.innerHTML = cart.map((c, idx) => `
+      renderLockedBadge();
+      document.getElementById("cartItemsList").innerHTML = cart.map((c, idx) => `
         <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0">
@@ -595,41 +502,33 @@
             </div>
           </div>
           <input type="text" value="${c.obs || ""}" oninput="updateItemNote(${idx}, this.value)"
-            placeholder="Ex: sem cebola, ao ponto..."
-            class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[11px] bg-white" />
+            placeholder="Ex: sem cebola, ao ponto..." class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[11px] bg-white" />
         </div>
       `).join("");
     }
 
     window.submitOrder = async function() {
-      if (!hasValidClient()) {
-        openClientGateModal(false);
-        return;
-      }
-      if (!cart.length) return;
-
+      if (!lockedClient || !lockedClient.fullName || !lockedClient.phone || !cart.length) return;
       const btn = document.getElementById("sendOrderBtn");
       btn.disabled = true;
       btn.textContent = "Enviando...";
-
       try {
         await push(ref(db, "orders"), {
           tableNumber: fixedTable,
-          customerName: clientInfo.fullName,
-          customerPhone: clientInfo.phone,
+          customerName: lockedClient.fullName,
+          customerPhone: lockedClient.phone,
           generalNote: (document.getElementById("orderGeneralNoteInput").value || "").trim(),
           items: cart,
           total: getCartTotal(),
           status: "novo",
           createdAt: Date.now()
         });
-
         cart = [];
         document.getElementById("orderGeneralNoteInput").value = "";
         updateCartBar();
         closeModal("cartModal");
-        showToast(`Pedido enviado para a Mesa ${fixedTable}!`);
-      } catch (err) {
+        showToast(`Pedido enviado pela Mesa ${fixedTable}!`);
+      } catch (e) {
         showToast("Erro ao enviar pedido.");
       } finally {
         btn.disabled = false;
@@ -649,11 +548,8 @@
       setTimeout(() => t.classList.add("opacity-0"), 2800);
     }
 
-    updateSealHeader();
+    renderLockedBadge();
     renderCategoryTabs();
-    if (!hasValidClient()) {
-      openClientGateModal(false);
-    }
   </script>
 </body>
 </html>
