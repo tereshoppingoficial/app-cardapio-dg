@@ -105,13 +105,13 @@
       </div>
     </section>
 
-    <!-- BUSCA POR PALAVRAS-CHAVE + DEPARTAMENTOS + SELETOR DE LAYOUT -->
+    <!-- BUSCA NA DESCRIÇÃO + DEPARTAMENTOS + SELETOR DE LAYOUT -->
     <section class="bg-white rounded-2xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
       <div class="flex items-center gap-2">
         <div class="relative flex items-center flex-1">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-xs"></i>
           <input type="search" id="menuSearchInput" oninput="renderMenu()"
-            placeholder="Buscar prato, ingrediente ou palavra-chave..."
+            placeholder="Buscar palavras na descrição dos produtos..."
             class="w-full bg-slate-100 text-slate-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
         </div>
 
@@ -127,10 +127,7 @@
         </div>
       </div>
 
-      <!-- PALAVRAS-CHAVE OCULTAS PARA OTIMIZAR ESPAÇO (BUSCA CONTINUA ATIVA) -->
-      <div id="keywordChipsRow" class="hidden"></div>
-
-      <!-- DEPARTAMENTOS / CATEGORIAS -->
+      <!-- DEPARTAMENTOS -->
       <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
     </section>
 
@@ -313,6 +310,8 @@
       { id: "bebidas", label: "Bebidas" },
       { id: "sobremesas", label: "Sobremesas" }
     ];
+
+    const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c => [c.id, c.label]));
 
     const urlParams = new URLSearchParams(window.location.search);
     const mesaUrl = (urlParams.get("mesa") || "").trim();
@@ -815,12 +814,15 @@
       const rawQ = (document.getElementById("menuSearchInput").value || "").trim().toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
+      const searchTerms = rawQ ? rawQ.split(/\s+/).filter(Boolean) : [];
+
       const list = menuItems.filter(item => {
         const matchCat = currentCategory === "all" || item.category === currentCategory;
-        const searchable = `${item.title || ""} ${item.description || ""} ${item.category || ""} ${item.keywords || ""}`
+        const deptLabel = CATEGORY_LABELS[item.category] || item.category || "";
+        const searchable = `${item.description || ""} ${item.title || ""} ${deptLabel}`
           .toLowerCase()
           .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const matchQ = !rawQ || searchable.includes(rawQ);
+        const matchQ = !searchTerms.length || searchTerms.every(term => searchable.includes(term));
         return matchCat && matchQ;
       });
 
@@ -838,6 +840,7 @@
           const priceNum = parsePrice(item.price);
           const oldNum = parsePrice(item.oldPrice);
           const isSoldOut = item.available === false;
+          const deptName = CATEGORY_LABELS[item.category] || item.category || "Departamento";
           return `
             <article class="bg-white rounded-2xl border border-gray-200 p-3 shadow-2xs flex items-center gap-3.5 ${isSoldOut ? 'opacity-65' : ''}">
               <div class="w-28 h-28 sm:w-36 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
@@ -846,6 +849,7 @@
 
               <div class="flex-1 min-w-0 flex flex-col justify-between self-stretch">
                 <div onclick="openItemDetail('${item.id}')" class="cursor-pointer space-y-1">
+                  <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded">${deptName}</span>
                   <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug">${item.title}</h3>
                   ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
                 </div>
@@ -871,6 +875,7 @@
         const priceNum = parsePrice(item.price);
         const oldNum = parsePrice(item.oldPrice);
         const isSoldOut = item.available === false;
+        const deptName = CATEGORY_LABELS[item.category] || item.category || "Departamento";
         return `
           <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? 'opacity-65' : ''}">
             <div>
@@ -879,6 +884,7 @@
                 ${isSoldOut ? `<span class="pointer-events-none absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded z-10">ESGOTADO</span>` : ""}
               </div>
               <div onclick="openItemDetail('${item.id}')" class="p-3 sm:p-3.5 space-y-1 cursor-pointer">
+                <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider text-amber-700">${deptName}</span>
                 <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug line-clamp-1">${item.title}</h3>
                 ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
               </div>
@@ -904,7 +910,8 @@
       const photos = getItemPhotos(item);
       const priceNum = parsePrice(item.price);
       const isSoldOut = item.available === false;
-      document.getElementById("detailCategoryTag").textContent = item.category || "Cardápio";
+      const deptName = CATEGORY_LABELS[item.category] || item.category || "Cardápio";
+      document.getElementById("detailCategoryTag").textContent = deptName;
       document.getElementById("itemDetailBody").innerHTML = `
         <div class="carousel-track flex overflow-x-auto no-scrollbar rounded-2xl bg-slate-900 border">
           ${photos.map((src, idx) => `
