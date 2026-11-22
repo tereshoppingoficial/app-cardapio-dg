@@ -12,62 +12,83 @@
     body { overflow-x: clip; min-height: 100vh; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .carousel-track {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scroll-behavior: smooth;
-    }
-    .carousel-slide {
-      flex: 0 0 100%;
-      scroll-snap-align: start;
-    }
+    .carousel-track { scroll-snap-type: x mandatory; }
+    .carousel-slide { scroll-snap-align: start; flex: 0 0 100%; }
   </style>
 </head>
 <body class="bg-[#F5F5F5] text-slate-900 font-sans antialiased pb-28">
 
-  <!-- CABEÇALHO DO RESTAURANTE + BANNER PANORÂMICO EDITÁVEL EM CARROSSEL (5s + ARRASTE) -->
-  <header class="bg-[#111827] text-white shadow-md">
-    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-      <div class="min-w-0">
-        <div class="flex items-center gap-2">
-          <h1 id="storeNameHeader" class="font-black text-base sm:text-xl tracking-tight truncate">SABOR &amp; BRASA • RESTAURANTE</h1>
-          <span id="tableBadge" class="bg-amber-400 text-slate-950 text-[11px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap">
-            Mesa 01
-          </span>
+  <!-- SELO FIXO NO TOPO: MESA + NOME DO CLIENTE -->
+  <div id="fixedClientBar" class="sticky top-0 z-40 bg-[#111827] text-white border-b border-amber-400/30 shadow-md">
+    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-2 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span id="fixedTableBadge" class="bg-amber-400 text-slate-950 text-xs font-black px-2.5 py-1 rounded-full whitespace-nowrap">
+          Mesa 01
+        </span>
+        <div class="min-w-0">
+          <p id="fixedClientName" class="text-xs font-extrabold text-white truncate">Identifique-se para pedir</p>
+          <p id="fixedClientPhone" class="text-[10px] text-gray-300 truncate"></p>
         </div>
-        <p id="customerHeaderSummary" class="text-[11px] text-gray-300 truncate">Identifique-se para pedir</p>
       </div>
 
       <div class="flex items-center gap-1.5 flex-shrink-0">
-        <button type="button" onclick="openCustomerModal(true)" title="Editar Nome, Celular ou Mesa"
-          class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center gap-1">
-          <i class="fa-solid fa-user-check text-amber-400"></i>
-          <span class="hidden sm:inline">Cliente / Mesa</span>
+        <button type="button" onclick="openClientGateModal()"
+          class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[11px] font-bold flex items-center gap-1">
+          <i class="fa-solid fa-user-pen text-amber-400"></i>
+          <span>Dados</span>
         </button>
         <button type="button" onclick="openAdminGate()" title="Painel ADM"
-          class="relative w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs">
+          class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs">
           <i class="fa-solid fa-lock text-amber-400"></i>
-          <span id="adminNewOrdersDot" class="hidden absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#111827]"></span>
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- CARROSSEL PANORÂMICO EDITÁVEL -->
-    <div id="headerCarouselWrapper" class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-4 pb-3 hidden">
-      <div class="relative rounded-2xl overflow-hidden border border-amber-400/30 bg-slate-900 shadow-sm">
-        <div id="headerCarouselTrack" class="carousel-track no-scrollbar"
-          onpointerdown="pauseCarouselTemp()" onpointerup="resumeCarouselTemp()" onscroll="syncCarouselDots()">
-          <!-- Slides via JS -->
+  <!-- CABEÇALHO EDITÁVEL DO RESTAURANTE + CARROSSEL PANORÂMICO (5S + ARRASTE) -->
+  <header class="bg-white border-b border-gray-200 shadow-2xs">
+    <div class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-3 space-y-3">
+      <div id="headerTextBox" class="flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <h1 id="storeNameText" class="font-black text-lg sm:text-2xl tracking-tight text-slate-900 truncate">SABOR & BRASA • RESTAURANTE</h1>
+          <p id="storeSubtitleText" class="text-xs text-gray-500 truncate">Cardápio digital por QR Code na mesa</p>
         </div>
-        <div id="headerCarouselDots" class="flex items-center justify-center gap-1.5 py-2 bg-black/40"></div>
+      </div>
+
+      <div id="headerCustomBannerBox" class="hidden rounded-2xl overflow-hidden border border-gray-200 bg-slate-900 relative">
+        <img id="headerCustomBannerImg" src="" alt="Banner do Cabeçalho" class="w-full h-32 sm:h-44 lg:h-52 object-cover block" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex items-end p-3 sm:p-4">
+          <p id="headerCustomBannerCaption" class="text-white font-black text-sm sm:text-lg"></p>
+        </div>
+      </div>
+
+      <!-- CARROSSEL PANORÂMICO (A CADA 5 SEGUNDOS + ARRASTE LATERAL) -->
+      <div id="panoramaCarouselSection" class="hidden space-y-1.5">
+        <div class="flex items-center justify-between px-0.5">
+          <span class="text-[11px] font-black uppercase tracking-wider text-slate-700">
+            <i class="fa-solid fa-images text-amber-500 mr-1"></i> Sugestões & Destaques do Dia
+          </span>
+          <span class="text-[10px] font-semibold text-gray-400">Arraste para os lados • Auto 5s</span>
+        </div>
+
+        <div class="relative rounded-2xl overflow-hidden border border-gray-200 bg-slate-900">
+          <div id="panoramaTrack"
+            onscroll="handlePanoramaScroll()"
+            ontouchstart="pauseCarouselTemp()"
+            onmousedown="pauseCarouselTemp()"
+            class="carousel-track flex overflow-x-auto no-scrollbar scroll-smooth">
+            <!-- Slides via JS -->
+          </div>
+        </div>
+
+        <div id="panoramaDots" class="flex items-center justify-center gap-1.5 pt-0.5"></div>
       </div>
     </div>
   </header>
 
   <main class="max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-5 pt-3 space-y-4">
 
-    <!-- BUSCA + CATEGORIAS -->
+    <!-- BUSCA + FILTROS DE CATEGORIA -->
     <section class="bg-white rounded-2xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
       <div class="relative flex items-center">
         <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-xs"></i>
@@ -79,8 +100,8 @@
       <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
     </section>
 
-    <!-- CARDÁPIO EM GRADE -->
-    <section id="menuItemsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <!-- GRADE DE ITENS DO CARDÁPIO -->
+    <section id="menuItemsContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
       <div class="col-span-full py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-200">
         <i class="fa-solid fa-circle-notch fa-spin text-2xl text-amber-500 mb-2"></i>
         <p class="text-xs font-semibold">Carregando cardápio...</p>
@@ -104,63 +125,58 @@
     </button>
   </div>
 
-  <!-- MODAL DE IDENTIFICAÇÃO AO ABRIR QR CODE (NOME COMPLETO + CELULAR COM DDD + MESA) -->
-  <div id="customerModal" class="fixed inset-0 z-50 bg-black/75 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-3.5">
+  <!-- MODAL DE IDENTIFICAÇÃO AO ABRIR QR CODE (NOME COMPLETO + CELULAR) -->
+  <div id="clientGateModal" class="fixed inset-0 z-50 bg-black/75 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="font-black text-base text-slate-900">Bem-vindo à <span id="custModalTableLabel" class="text-amber-600">Mesa 01</span></h3>
-          <p class="text-[11px] text-gray-500">Informe seus dados para vincular ao seu pedido</p>
+          <span id="gateTableBadge" class="bg-amber-400 text-slate-950 text-[11px] font-black px-2.5 py-0.5 rounded-full">Mesa 01</span>
+          <h3 class="font-black text-base text-slate-900 mt-1">Bem-vindo à Mesa</h3>
         </div>
-        <button type="button" onclick="closeCustomerModalIfAllowed()" class="text-gray-400 hover:text-slate-700 p-1">
-          <i class="fa-solid fa-xmark"></i>
+        <button type="button" onclick="closeModal('clientGateModal')" class="text-gray-400 hover:text-slate-700 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
-      <form onsubmit="event.preventDefault(); saveCustomerInfo();" class="space-y-3">
+      <form onsubmit="event.preventDefault(); saveClientInfo();" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Nome completo *</label>
-          <input type="text" id="custFullNameInput" required placeholder="Ex: João Silva Santos"
-            class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-slate-900" />
+          <input type="text" id="clientFullNameInput" required placeholder="Ex: João da Silva Souza"
+            class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-slate-900" />
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Celular com DDD *</label>
-          <input type="tel" id="custPhoneInput" required oninput="formatPhoneInput(this)" placeholder="(86) 99999-9999"
-            class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-slate-900" />
+          <label class="block text-xs font-bold text-slate-700 mb-1">Número do celular *</label>
+          <input type="tel" id="clientPhoneInput" required placeholder="Ex: (86) 99999-9999"
+            class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-slate-900" />
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Número da mesa</label>
-          <input type="text" id="custTableInput" required placeholder="Ex: 01"
-            class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold bg-slate-50 focus:outline-none focus:border-slate-900" />
-        </div>
-
-        <button type="submit" class="w-full bg-[#111827] hover:bg-slate-800 text-amber-400 font-black py-3 rounded-xl text-xs uppercase tracking-wider">
-          Continuar para o Cardápio
+        <button type="submit" class="w-full bg-[#111827] hover:bg-slate-800 text-amber-400 font-black py-3 rounded-xl text-sm shadow-md">
+          Confirmar e Ver Cardápio
         </button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL DE DETALHES DO ITEM (GALERIA ATÉ 10 FOTOS + VÍDEO 15s) -->
-  <div id="itemDetailModal" class="fixed inset-0 z-50 bg-black/75 hidden items-end sm:items-center justify-center p-3 sm:p-4">
-    <div class="bg-white w-full max-w-lg rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+  <!-- MODAL DE DETALHES DO ITEM (ATÉ 10 FOTOS + VÍDEO CURTO 20S) -->
+  <div id="itemDetailModal" class="fixed inset-0 z-50 bg-black/75 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3 bg-[#111827] text-white flex items-center justify-between">
-        <h3 id="detailItemTitle" class="font-black text-sm truncate">Detalhes do Item</h3>
+        <span id="detailCategoryTag" class="text-[11px] font-black uppercase tracking-wider text-amber-400">Item</span>
         <button onclick="closeModal('itemDetailModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
-      <div id="detailItemBody" class="p-4 overflow-y-auto space-y-3"></div>
+
+      <div id="itemDetailBody" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
     </div>
   </div>
 
-  <!-- MODAL DA SACOLA -->
+  <!-- MODAL DA SACOLA E ENVIO DO PEDIDO -->
   <div id="cartModal" class="fixed inset-0 z-50 bg-black/65 hidden items-end sm:items-center justify-center p-3 sm:p-4">
     <div class="bg-white w-full max-w-lg rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3.5 bg-[#111827] text-white flex items-center justify-between">
         <div>
-          <h3 class="font-black text-sm">Pedido • <span id="modalCartTableLabel" class="text-amber-400">Mesa 01</span></h3>
-          <p id="modalCartCustomerLabel" class="text-[10px] text-gray-300"></p>
+          <h3 class="font-black text-sm">Seu Pedido • <span id="modalCartTableLabel" class="text-amber-400">Mesa 01</span></h3>
+          <p id="modalCartClientLabel" class="text-[10px] text-gray-300"></p>
         </div>
         <button onclick="closeModal('cartModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
@@ -179,7 +195,7 @@
           <span id="modalCartTotal" class="text-lg font-black text-slate-900">R$ 0,00</span>
         </div>
 
-        <button type="button" id="sendOrderBtn" onclick="submitOrderToReception()"
+        <button type="button" id="sendOrderBtn" onclick="submitOrderToAdmin()"
           class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl text-sm shadow-md transition">
           Enviar Pedido
         </button>
@@ -204,42 +220,40 @@
     </div>
   </div>
 
-  <!-- MODAL PAINEL ADM (PEDIDOS DAS MESAS + CARDÁPIO ATÉ 10 FOTOS & VÍDEO 15s + BANNER CABEÇALHO + QR CODE) -->
+  <!-- MODAL PAINEL ADM -->
   <div id="adminModal" class="fixed inset-0 z-50 bg-black/65 hidden items-end sm:items-center justify-center">
     <div class="bg-white w-full max-w-3xl rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3 bg-[#111827] text-white flex items-center justify-between">
-        <h2 class="font-black text-sm">Painel ADM • Pedidos, Cardápio &amp; Banners</h2>
+        <h2 class="font-black text-sm">Painel ADM • Cardápio, Banners & Pedidos</h2>
         <button onclick="closeModal('adminModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
       <div class="flex border-b border-gray-200 bg-slate-50 text-xs font-extrabold overflow-x-auto no-scrollbar">
-        <button type="button" onclick="switchAdminTab('orders')" id="tab-orders" class="px-4 py-3 border-b-2 border-slate-900 text-slate-900 whitespace-nowrap">
-          Pedidos das Mesas <span id="admOrdersCountBadge" class="ml-1 px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px]">0</span>
-        </button>
-        <button type="button" onclick="switchAdminTab('items')" id="tab-items" class="px-4 py-3 border-b-2 border-transparent text-gray-500 whitespace-nowrap">Cardápio (10 Fotos / Vídeo 15s)</button>
-        <button type="button" onclick="switchAdminTab('banners')" id="tab-banners" class="px-4 py-3 border-b-2 border-transparent text-gray-500 whitespace-nowrap">Banner Cabeçalho (5s)</button>
+        <button type="button" onclick="switchAdminTab('orders')" id="tab-orders" class="px-4 py-3 border-b-2 border-slate-900 text-slate-900 whitespace-nowrap">Pedidos Mesas</button>
+        <button type="button" onclick="switchAdminTab('items')" id="tab-items" class="px-4 py-3 border-b-2 border-transparent text-gray-500 whitespace-nowrap">Cardápio (Fotos/Vídeo)</button>
+        <button type="button" onclick="switchAdminTab('header')" id="tab-header" class="px-4 py-3 border-b-2 border-transparent text-gray-500 whitespace-nowrap">Cabeçalho & Carrossel</button>
         <button type="button" onclick="switchAdminTab('qrcodes')" id="tab-qrcodes" class="px-4 py-3 border-b-2 border-transparent text-gray-500 whitespace-nowrap">QR Code Mesas</button>
       </div>
 
       <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
 
-        <!-- ABA 1: SOLICITAÇÕES DE PEDIDOS DE TODAS AS MESAS -->
+        <!-- ABA 1: PEDIDOS DAS VÁRIAS MESAS -->
         <div id="admPane-orders" class="space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-1.5 text-xs font-bold">
-              <button type="button" onclick="setOrderFilter('all')" id="ordFilter-all" class="px-3 py-1 rounded-full bg-slate-900 text-white">Todos</button>
-              <button type="button" onclick="setOrderFilter('novo')" id="ordFilter-novo" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700">Novos</button>
-              <button type="button" onclick="setOrderFilter('preparo')" id="ordFilter-preparo" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700">Em preparo</button>
-              <button type="button" onclick="setOrderFilter('pronto')" id="ordFilter-pronto" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700">Prontos</button>
-            </div>
-            <button type="button" onclick="enableOrderSound()" class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 text-xs font-black">
-              <i class="fa-solid fa-bell mr-1"></i> Ativar Som
-            </button>
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <p class="text-xs font-black text-slate-800">Solicitações de Pedidos das Mesas (Tempo Real)</p>
+            <select id="orderStatusFilter" onchange="renderAdminOrders()" class="border border-gray-300 rounded-xl px-2.5 py-1.5 text-xs font-bold bg-white">
+              <option value="ativos">Ativos (Novo / Preparo / Pronto)</option>
+              <option value="all">Todos</option>
+              <option value="novo">Novos</option>
+              <option value="preparo">Em preparo</option>
+              <option value="pronto">Prontos</option>
+              <option value="finalizado">Finalizados</option>
+            </select>
           </div>
           <div id="adminOrdersList" class="space-y-2.5"></div>
         </div>
 
-        <!-- ABA 2: ITENS EM GRADE (ATÉ 10 FOTOS + VÍDEO CURTO 15s) -->
+        <!-- ABA 2: CARDÁPIO (ATÉ 10 FOTOS + VÍDEO CURTO 20S) -->
         <div id="admPane-items" class="space-y-4 hidden">
           <form onsubmit="handleSaveMenuItem(event)" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
             <input type="hidden" id="editItemId" value="" />
@@ -251,7 +265,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label class="block text-[11px] font-bold text-slate-700 mb-1">Nome do Item *</label>
-                <input type="text" id="itemTitle" required placeholder="Ex: Combo Duplo Bacon + Batata"
+                <input type="text" id="itemTitle" required placeholder="Ex: Combo Duplo Bacon"
                   class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
               </div>
               <div>
@@ -260,7 +274,7 @@
                   <option value="combos">Combos</option>
                   <option value="promocoes">Promoções</option>
                   <option value="pratos">Pratos Principais</option>
-                  <option value="lanches">Lanches &amp; Porções</option>
+                  <option value="lanches">Lanches & Porções</option>
                   <option value="bebidas">Bebidas</option>
                   <option value="sobremesas">Sobremesas</option>
                 </select>
@@ -282,32 +296,31 @@
 
             <div>
               <label class="block text-[11px] font-bold text-slate-700 mb-1">Descrição</label>
-              <textarea id="itemDesc" rows="2" placeholder="Ingredientes, acompanhamentos ou detalhes..."
+              <textarea id="itemDesc" rows="2" placeholder="Detalhes do prato ou combo..."
                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white"></textarea>
             </div>
 
             <div>
               <label class="block text-[11px] font-bold text-slate-700 mb-1">Fotos do Item (até 10 fotos)</label>
-              <input type="file" id="itemImagesInput" accept="image/*" multiple onchange="handleItemImagesUpload(event)"
+              <input type="file" id="itemPhotosInput" accept="image/*" multiple onchange="handleItemPhotosUpload(event)"
                 class="w-full text-xs text-slate-600" />
-              <div id="itemImagesPreview" class="flex flex-wrap gap-2 mt-2"></div>
+              <p id="itemPhotosCountText" class="text-[10px] text-gray-500 mt-1">0 / 10 fotos selecionadas</p>
+              <div id="itemPhotosPreviewGrid" class="flex gap-2 overflow-x-auto py-1.5"></div>
             </div>
 
-            <div class="space-y-1.5">
-              <label class="block text-[11px] font-bold text-slate-700">Vídeo curto (máximo 15 segundos)</label>
-              <input type="file" id="itemVideoFileInput" accept="video/*" onchange="handleItemVideoUpload(event)"
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Vídeo Curto (máximo 20 segundos)</label>
+              <input type="file" id="itemVideoInput" accept="video/*" onchange="handleItemVideoUpload(event)"
                 class="w-full text-xs text-slate-600" />
-              <input type="url" id="itemVideoUrlInput" placeholder="Ou cole URL direta de vídeo curto (ex: .mp4)"
-                class="w-full border border-gray-300 rounded-xl px-3 py-1.5 text-xs bg-white" />
-              <p id="itemVideoStatus" class="text-[10px] text-gray-500"></p>
+              <p id="itemVideoStatusText" class="text-[10px] text-gray-500 mt-1">Nenhum vídeo curto anexado</p>
             </div>
 
             <div class="flex items-center justify-between pt-1">
               <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
                 <input type="checkbox" id="itemAvailable" checked class="accent-emerald-600" />
-                <span>Disponível</span>
+                <span>Disponível para pedido</span>
               </label>
-              <button type="submit" id="saveItemBtn" class="bg-[#111827] text-white font-black px-4 py-2 rounded-xl text-xs">
+              <button type="submit" class="bg-[#111827] text-white font-black px-4 py-2 rounded-xl text-xs">
                 Salvar Item
               </button>
             </div>
@@ -316,25 +329,57 @@
           <div id="adminItemsList" class="space-y-2"></div>
         </div>
 
-        <!-- ABA 3: BANNER PANORÂMICO EDITÁVEL NO CABEÇALHO (CARROSSEL 5s) -->
-        <div id="admPane-banners" class="space-y-4 hidden">
-          <form onsubmit="handleSaveStoreName(event)" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row gap-2">
-            <input type="text" id="cfgStoreName" placeholder="Nome do Restaurante"
-              class="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
-            <button type="submit" class="bg-[#111827] text-white font-bold px-4 py-2 rounded-xl text-xs">Salvar Nome</button>
+        <!-- ABA 3: CABEÇALHO EDITÁVEL + CARROSSEL PANORÂMICO (5S) -->
+        <div id="admPane-header" class="space-y-5 hidden">
+          <form onsubmit="handleSaveHeaderConfig(event)" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            <p class="text-xs font-black text-slate-900">Cabeçalho do Restaurante</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Nome do Restaurante</label>
+                <input type="text" id="cfgStoreName" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Subtítulo</label>
+                <input type="text" id="cfgStoreSubtitle" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-1">
+              <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                <input type="checkbox" id="cfgUseHeaderBanner" class="accent-amber-500" />
+                <span>Aplicar banner panorâmico no cabeçalho</span>
+              </label>
+              <button type="button" onclick="clearHeaderBanner()" class="text-[11px] font-bold text-red-600">Remover banner</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Imagem Panorâmica do Cabeçalho</label>
+                <input type="file" accept="image/*" onchange="handleHeaderBannerUpload(event)" class="w-full text-xs" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Legenda do Banner do Cabeçalho</label>
+                <input type="text" id="cfgHeaderBannerCaption" placeholder="Ex: Almoço Executivo & Pratos na Brasa"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
+              </div>
+            </div>
+
+            <button type="submit" class="bg-[#111827] text-white font-black px-4 py-2 rounded-xl text-xs">
+              Salvar Cabeçalho
+            </button>
           </form>
 
-          <form onsubmit="handleAddHeaderSlide(event)" class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-3">
-            <p class="text-xs font-black text-slate-900">Adicionar Slide ao Banner Panorâmico do Cabeçalho (5s)</p>
+          <form onsubmit="handleAddPanoramaSlide(event)" class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-3">
+            <p class="text-xs font-black text-slate-900">Adicionar Slide ao Carrossel Panorâmico (Gira a cada 5s)</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label class="block text-[11px] font-bold text-slate-700 mb-1">Título do Banner *</label>
-                <input type="text" id="slideTitle" required placeholder="Ex: Sugestão do Dia • Picanha na Chapa"
+                <input type="text" id="slideTitle" required placeholder="Ex: Festival de Burgers Artesanais"
                   class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
               </div>
               <div>
-                <label class="block text-[11px] font-bold text-slate-700 mb-1">Subtítulo / Destaque</label>
-                <input type="text" id="slideSubtitle" placeholder="Ex: Serve até 3 pessoas hoje no salão"
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Subtítulo</label>
+                <input type="text" id="slideSubtitle" placeholder="Ex: Combo a partir de R$ 29,90"
                   class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white" />
               </div>
             </div>
@@ -347,14 +392,14 @@
             </button>
           </form>
 
-          <div id="adminSlidesList" class="space-y-2"></div>
+          <div id="adminPanoramaList" class="space-y-2"></div>
         </div>
 
-        <!-- ABA 4: GERADOR DE QR CODE POR MESA -->
+        <!-- ABA 4: QR CODE POR MESA -->
         <div id="admPane-qrcodes" class="space-y-3 hidden">
-          <p class="text-xs text-slate-600">Gere o QR Code de cada mesa. Ao escanear, o cliente já entra com a mesa identificada.</p>
+          <p class="text-xs text-slate-600">Gere o QR Code da mesa. Ao escanear, o número da mesa fica fixo no topo e o cliente informa nome completo e celular.</p>
           <div class="flex gap-2">
-            <input type="text" id="qrTableInput" value="01" placeholder="Nº da mesa"
+            <input type="text" id="qrTableInput" value="01" placeholder="Nº da mesa (ex: 01)"
               class="border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold w-32" />
             <button type="button" onclick="generateTableQrCode()" class="bg-[#111827] text-white font-bold px-4 py-2 rounded-xl text-xs">
               Gerar QR Code
@@ -376,9 +421,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, set, push, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // SUBSTITUA PELO FIREBASE CONFIG DO SEU PROJETO
     const firebaseConfig = {
       apiKey: "AIzaSyC0wXUH9fz_ZmyqW6CAphG28LmjtkFTmOA",
       authDomain: "projeto-gold-658a1.firebaseapp.com",
@@ -391,7 +434,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const storage = getStorage(app);
 
     const CATEGORIES = [
       { id: "all", label: "Tudo" },
@@ -405,37 +447,35 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const mesaDaUrl = (urlParams.get("mesa") || "").trim();
+    const fixedTable = mesaDaUrl || localStorage.getItem("mesa_fixa_qrcode") || "01";
+    localStorage.setItem("mesa_fixa_qrcode", fixedTable);
 
-    let customerProfile = JSON.parse(localStorage.getItem("cliente_mesa_perfil") || "null") || {
-      fullName: "",
-      phone: "",
-      tableNumber: mesaDaUrl || "01"
-    };
-    if (mesaDaUrl) {
-      customerProfile.tableNumber = mesaDaUrl;
-      localStorage.setItem("cliente_mesa_perfil", JSON.stringify(customerProfile));
-    }
+    let clientInfo = JSON.parse(localStorage.getItem("cliente_mesa_info") || "null") || { fullName: "", phone: "" };
 
     let currentCategory = "all";
     let menuItems = [];
-    let headerSlides = [];
+    let panoramaSlides = [];
     let ordersList = [];
-    let orderFilter = "all";
     let cart = [];
     let isAdminLogged = false;
-    let soundEnabled = false;
-    let knownNewOrderIds = new Set();
-    let carouselTimer = null;
-    let carouselPausedUntil = 0;
 
     let storeConfig = {
       storeName: "SABOR & BRASA • RESTAURANTE",
+      subtitle: "Cardápio digital por QR Code na mesa",
+      useHeaderBanner: false,
+      headerBannerImage: "",
+      headerBannerCaption: "",
       adminPass: "admin123"
     };
 
-    let pendingItemImages = [];
-    let pendingItemVideoFile = null;
-    let pendingSlideImage = "";
+    let pendingItemPhotos = [];
+    let pendingItemVideo = "";
+    let pendingHeaderBannerImg = "";
+    let pendingSlideImg = "";
+
+    let carouselIndex = 0;
+    let carouselTimer = null;
+    let carouselPauseUntil = 0;
 
     function parsePrice(val) {
       if (!val) return 0;
@@ -448,77 +488,54 @@
       return (num || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
-    window.formatPhoneInput = function(input) {
-      let digits = input.value.replace(/\D/g, "").slice(0, 11);
-      if (digits.length > 6) {
-        input.value = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-      } else if (digits.length > 2) {
-        input.value = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-      } else {
-        input.value = digits;
-      }
-    };
+    function updateFixedClientHeader() {
+      document.getElementById("fixedTableBadge").textContent = `Mesa ${fixedTable}`;
+      document.getElementById("cartTableSummary").textContent = `Mesa ${fixedTable}`;
+      document.getElementById("modalCartTableLabel").textContent = `Mesa ${fixedTable}`;
+      document.getElementById("gateTableBadge").textContent = `Mesa ${fixedTable}`;
 
-    function updateCustomerHeader() {
-      const tbl = customerProfile.tableNumber || "01";
-      document.getElementById("tableBadge").textContent = `Mesa ${tbl}`;
-      document.getElementById("cartTableSummary").textContent = `Mesa ${tbl} • ${customerProfile.fullName || ""}`;
-      document.getElementById("modalCartTableLabel").textContent = `Mesa ${tbl}`;
-      document.getElementById("modalCartCustomerLabel").textContent =
-        customerProfile.fullName ? `${customerProfile.fullName} • ${customerProfile.phone}` : "";
-
-      const summary = document.getElementById("customerHeaderSummary");
-      if (customerProfile.fullName && customerProfile.phone) {
-        summary.textContent = `${customerProfile.fullName} • ${customerProfile.phone}`;
+      if (clientInfo.fullName && clientInfo.phone) {
+        document.getElementById("fixedClientName").textContent = clientInfo.fullName;
+        document.getElementById("fixedClientPhone").textContent = clientInfo.phone;
+        document.getElementById("modalCartClientLabel").textContent = `${clientInfo.fullName} • ${clientInfo.phone}`;
       } else {
-        summary.textContent = "Toque para informar Nome e Celular (DDD)";
+        document.getElementById("fixedClientName").textContent = "Toque em Dados para informar nome e celular";
+        document.getElementById("fixedClientPhone").textContent = "";
+        document.getElementById("modalCartClientLabel").textContent = "Nome e celular obrigatórios";
       }
     }
 
-    window.openCustomerModal = function(allowClose = true) {
-      document.getElementById("custModalTableLabel").textContent = `Mesa ${customerProfile.tableNumber || "01"}`;
-      document.getElementById("custFullNameInput").value = customerProfile.fullName || "";
-      document.getElementById("custPhoneInput").value = customerProfile.phone || "";
-      document.getElementById("custTableInput").value = customerProfile.tableNumber || "01";
-      document.getElementById("customerModal").dataset.allowClose = allowClose ? "1" : "0";
-      document.getElementById("customerModal").classList.replace("hidden", "flex");
+    window.openClientGateModal = function() {
+      document.getElementById("clientFullNameInput").value = clientInfo.fullName || "";
+      document.getElementById("clientPhoneInput").value = clientInfo.phone || "";
+      document.getElementById("clientGateModal").classList.replace("hidden", "flex");
     };
 
-    window.closeCustomerModalIfAllowed = function() {
-      const modal = document.getElementById("customerModal");
-      if (modal.dataset.allowClose === "1" || (customerProfile.fullName && customerProfile.phone)) {
-        modal.classList.replace("flex", "hidden");
-      } else {
-        showToast("Preencha seu nome completo e celular com DDD.");
-      }
-    };
-
-    window.saveCustomerInfo = function() {
-      const fullName = (document.getElementById("custFullNameInput").value || "").trim();
-      const phone = (document.getElementById("custPhoneInput").value || "").trim();
-      const tableNumber = (document.getElementById("custTableInput").value || "01").trim();
-      if (!fullName || phone.replace(/\D/g, "").length < 10) {
-        showToast("Informe nome completo e celular com DDD.");
+    window.saveClientInfo = function() {
+      const fullName = (document.getElementById("clientFullNameInput").value || "").trim();
+      const phone = (document.getElementById("clientPhoneInput").value || "").trim();
+      if (!fullName || !phone) {
+        showToast("Preencha nome completo e celular.");
         return;
       }
-      customerProfile = { fullName, phone, tableNumber };
-      localStorage.setItem("cliente_mesa_perfil", JSON.stringify(customerProfile));
-      updateCustomerHeader();
-      document.getElementById("customerModal").classList.replace("flex", "hidden");
-      showToast("Dados salvos para a mesa!");
+      clientInfo = { fullName, phone };
+      localStorage.setItem("cliente_mesa_info", JSON.stringify(clientInfo));
+      updateFixedClientHeader();
+      closeModal("clientGateModal");
+      showToast(`Bem-vindo(a), ${fullName} • Mesa ${fixedTable}`);
     };
 
-    // FIREBASE LISTENERS
+    // ESCUTA DADOS EM TEMPO REAL NO FIREBASE
     onValue(ref(db, "restaurant_config"), (snap) => {
       if (snap.exists()) storeConfig = { ...storeConfig, ...snap.val() };
-      document.getElementById("storeNameHeader").textContent = storeConfig.storeName || "RESTAURANTE";
+      renderHeaderConfig();
     });
 
-    onValue(ref(db, "header_carousel"), (snap) => {
+    onValue(ref(db, "panorama_banners"), (snap) => {
       const val = snap.val();
-      headerSlides = val ? Object.entries(val).map(([id, v]) => ({ id, ...v })) : [];
-      renderHeaderCarousel();
-      renderAdminSlides();
+      panoramaSlides = val ? Object.entries(val).map(([id, v]) => ({ id, ...v })) : [];
+      renderPanoramaCarousel();
+      renderAdminPanoramaList();
     });
 
     onValue(ref(db, "menu_items"), (snap) => {
@@ -533,89 +550,93 @@
       ordersList = val
         ? Object.entries(val).map(([id, v]) => ({ id, ...v })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
         : [];
-
-      const newOrders = ordersList.filter(o => o.status === "novo");
-      document.getElementById("admOrdersCountBadge").textContent = newOrders.length;
-      document.getElementById("adminNewOrdersDot").classList.toggle("hidden", newOrders.length === 0);
-
-      for (const o of newOrders) {
-        if (!knownNewOrderIds.has(o.id)) {
-          knownNewOrderIds.add(o.id);
-          if (soundEnabled && ordersList.length > newOrders.length) playBeep();
-        }
-      }
       renderAdminOrders();
     });
 
-    // CARROSSEL PANORÂMICO DO CABEÇALHO (5s + ARRASTE)
-    function renderHeaderCarousel() {
-      const wrap = document.getElementById("headerCarouselWrapper");
-      const track = document.getElementById("headerCarouselTrack");
-      const dots = document.getElementById("headerCarouselDots");
+    function renderHeaderConfig() {
+      document.getElementById("storeNameText").textContent = storeConfig.storeName || "RESTAURANTE";
+      document.getElementById("storeSubtitleText").textContent = storeConfig.subtitle || "";
 
-      if (!headerSlides.length) {
-        wrap.classList.add("hidden");
-        clearInterval(carouselTimer);
+      const bannerBox = document.getElementById("headerCustomBannerBox");
+      if (storeConfig.useHeaderBanner && storeConfig.headerBannerImage) {
+        document.getElementById("headerCustomBannerImg").src = storeConfig.headerBannerImage;
+        document.getElementById("headerCustomBannerCaption").textContent = storeConfig.headerBannerCaption || "";
+        bannerBox.classList.remove("hidden");
+      } else {
+        bannerBox.classList.add("hidden");
+      }
+    }
+
+    // CARROSSEL PANORÂMICO (5S + ARRASTE)
+    function renderPanoramaCarousel() {
+      const section = document.getElementById("panoramaCarouselSection");
+      const track = document.getElementById("panoramaTrack");
+      const dots = document.getElementById("panoramaDots");
+
+      if (carouselTimer) { clearInterval(carouselTimer); carouselTimer = null; }
+
+      if (!panoramaSlides.length) {
+        section.classList.add("hidden");
         return;
       }
 
-      wrap.classList.remove("hidden");
-      track.innerHTML = headerSlides.map(s => `
-        <div class="carousel-slide relative">
-          <img src="${s.imageData}" alt="${s.title}" class="w-full h-36 sm:h-48 lg:h-56 object-cover block" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent flex flex-col justify-end p-3 sm:p-4">
-            <span class="inline-block w-fit bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded mb-1">Destaque</span>
-            <p class="text-white font-black text-sm sm:text-lg leading-tight">${s.title}</p>
-            ${s.subtitle ? `<p class="text-xs text-amber-100 truncate">${s.subtitle}</p>` : ""}
+      section.classList.remove("hidden");
+      track.innerHTML = panoramaSlides.map(s => `
+        <div class="carousel-slide relative h-40 sm:h-52 lg:h-60 bg-slate-900">
+          <img src="${s.imageData}" alt="${s.title}" class="w-full h-full object-cover block" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent flex flex-col justify-end p-3 sm:p-5">
+            <p class="text-white font-black text-sm sm:text-xl leading-tight">${s.title}</p>
+            ${s.subtitle ? `<p class="text-amber-300 text-xs sm:text-sm font-semibold">${s.subtitle}</p>` : ""}
           </div>
         </div>
       `).join("");
 
-      dots.innerHTML = headerSlides.map((_, i) => `
-        <button type="button" onclick="goToSlide(${i})" class="h-1.5 rounded-full transition-all ${i === 0 ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/40'}"></button>
+      dots.innerHTML = panoramaSlides.map((_, idx) => `
+        <button type="button" onclick="goToPanoramaSlide(${idx})"
+          class="h-2 rounded-full transition-all ${idx === carouselIndex ? 'w-6 bg-slate-900' : 'w-2 bg-gray-300'}"></button>
       `).join("");
 
-      startAutoSlide();
+      if (panoramaSlides.length > 1) {
+        carouselTimer = setInterval(() => {
+          if (Date.now() < carouselPauseUntil) return;
+          carouselIndex = (carouselIndex + 1) % panoramaSlides.length;
+          goToPanoramaSlide(carouselIndex, false);
+        }, 5000);
+      }
     }
-
-    function startAutoSlide() {
-      clearInterval(carouselTimer);
-      if (headerSlides.length <= 1) return;
-      carouselTimer = setInterval(() => {
-        if (Date.now() < carouselPausedUntil) return;
-        const track = document.getElementById("headerCarouselTrack");
-        const w = track.clientWidth || 1;
-        const currentIdx = Math.round(track.scrollLeft / w);
-        const nextIdx = (currentIdx + 1) % headerSlides.length;
-        track.scrollTo({ left: nextIdx * w, behavior: "smooth" });
-      }, 5000);
-    }
-
-    window.goToSlide = function(idx) {
-      pauseCarouselTemp();
-      const track = document.getElementById("headerCarouselTrack");
-      track.scrollTo({ left: idx * (track.clientWidth || 1), behavior: "smooth" });
-    };
 
     window.pauseCarouselTemp = function() {
-      carouselPausedUntil = Date.now() + 8000;
+      carouselPauseUntil = Date.now() + 7000;
     };
 
-    window.resumeCarouselTemp = function() {
-      carouselPausedUntil = Date.now() + 5000;
+    window.goToPanoramaSlide = function(idx, pause = true) {
+      if (pause) pauseCarouselTemp();
+      carouselIndex = idx;
+      const track = document.getElementById("panoramaTrack");
+      if (track) track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" });
+      updatePanoramaDots();
     };
 
-    window.syncCarouselDots = function() {
-      const track = document.getElementById("headerCarouselTrack");
-      const dots = document.getElementById("headerCarouselDots").children;
-      if (!dots.length) return;
-      const idx = Math.round(track.scrollLeft / (track.clientWidth || 1));
-      Array.from(dots).forEach((d, i) => {
-        d.className = `h-1.5 rounded-full transition-all ${i === idx ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/40'}`;
+    window.handlePanoramaScroll = function() {
+      pauseCarouselTemp();
+      const track = document.getElementById("panoramaTrack");
+      if (!track || !track.clientWidth) return;
+      const idx = Math.round(track.scrollLeft / track.clientWidth);
+      if (idx !== carouselIndex && idx >= 0 && idx < panoramaSlides.length) {
+        carouselIndex = idx;
+        updatePanoramaDots();
+      }
+    };
+
+    function updatePanoramaDots() {
+      const dots = document.getElementById("panoramaDots");
+      if (!dots) return;
+      [...dots.children].forEach((btn, idx) => {
+        btn.className = `h-2 rounded-full transition-all ${idx === carouselIndex ? 'w-6 bg-slate-900' : 'w-2 bg-gray-300'}`;
       });
-    };
+    }
 
-    // GRADE DO CARDÁPIO
+    // CATEGORIAS E GRADE DO CARDÁPIO
     function renderCategoryTabs() {
       const box = document.getElementById("categoryTabs");
       box.innerHTML = CATEGORIES.map(cat => {
@@ -636,7 +657,7 @@
     };
 
     function getItemPhotos(item) {
-      if (Array.isArray(item.images) && item.images.length) return item.images.slice(0, 10);
+      if (Array.isArray(item.photos) && item.photos.length) return item.photos.slice(0, 10);
       if (item.imageData) return [item.imageData];
       return ["https://placehold.co/600x400/111827/fbbf24?text=Cardapio"];
     }
@@ -663,39 +684,36 @@
         const priceNum = parsePrice(item.price);
         const oldNum = parsePrice(item.oldPrice);
         const isSoldOut = item.available === false;
-        const hasVideo = Boolean(item.videoUrl);
+        const hasVideo = Boolean(item.videoData);
 
         return `
           <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? 'opacity-65' : ''}">
-            <div>
-              <div onclick="openItemDetail('${item.id}')" class="cursor-pointer relative h-44 bg-slate-100 overflow-hidden">
+            <div onclick="openItemDetail('${item.id}')" class="cursor-pointer">
+              <div class="relative h-36 sm:h-44 bg-slate-100 overflow-hidden">
                 <img src="${photos[0]}" alt="${item.title}" class="w-full h-full object-cover" />
-                <span class="absolute top-2 left-2 bg-black/75 text-amber-300 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md">
-                  ${item.category || "item"}
-                </span>
-                <div class="absolute top-2 right-2 flex items-center gap-1">
-                  ${photos.length > 1 ? `<span class="bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-md"><i class="fa-regular fa-images mr-1"></i>${photos.length}</span>` : ""}
-                  ${hasVideo ? `<span class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md"><i class="fa-solid fa-play mr-1"></i>15s</span>` : ""}
-                  ${isSoldOut ? `<span class="bg-red-700 text-white text-[10px] font-black px-2 py-0.5 rounded-md">ESGOTADO</span>` : ""}
+                <div class="absolute top-2 left-2 flex items-center gap-1">
+                  ${photos.length > 1 ? `<span class="bg-black/75 text-white text-[10px] font-bold px-1.5 py-0.5 rounded"><i class="fa-solid fa-images mr-0.5"></i>${photos.length}</span>` : ""}
+                  ${hasVideo ? `<span class="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded"><i class="fa-solid fa-video mr-0.5"></i>20s</span>` : ""}
                 </div>
+                ${isSoldOut ? `<span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded">ESGOTADO</span>` : ""}
               </div>
 
-              <div onclick="openItemDetail('${item.id}')" class="cursor-pointer p-3 space-y-1">
-                <h3 class="font-black text-sm text-slate-900 leading-snug">${item.title}</h3>
-                ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
+              <div class="p-2.5 sm:p-3 space-y-1">
+                <h3 class="font-black text-xs sm:text-sm text-slate-900 leading-snug line-clamp-1">${item.title}</h3>
+                ${item.description ? `<p class="text-[11px] text-gray-500 line-clamp-2">${item.description}</p>` : ""}
               </div>
             </div>
 
-            <div class="px-3 pb-3 pt-1 flex items-center justify-between gap-2">
-              <div>
+            <div class="px-2.5 sm:px-3 pb-2.5 sm:pb-3 pt-1 flex items-center justify-between gap-1.5">
+              <div class="min-w-0">
                 ${oldNum > priceNum ? `<span class="block text-[10px] text-gray-400 line-through">${formatBRL(oldNum)}</span>` : ""}
-                <span class="text-sm font-black text-emerald-700">${formatBRL(priceNum)}</span>
+                <span class="text-xs sm:text-sm font-black text-emerald-700">${formatBRL(priceNum)}</span>
               </div>
 
               <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}')"`}
-                class="px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#111827] hover:bg-slate-800 text-amber-400 active:scale-95'}">
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black flex items-center gap-1 transition ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#111827] hover:bg-slate-800 text-amber-400 active:scale-95'}">
                 <i class="fa-solid fa-plus"></i>
-                <span>${isSoldOut ? "Indisponível" : "Pedir"}</span>
+                <span>${isSoldOut ? "Esgotado" : "Pedir"}</span>
               </button>
             </div>
           </article>
@@ -707,40 +725,54 @@
       const item = menuItems.find(m => m.id === itemId);
       if (!item) return;
       const photos = getItemPhotos(item);
-      document.getElementById("detailItemTitle").textContent = item.title;
-      document.getElementById("detailItemBody").innerHTML = `
-        <div class="carousel-track no-scrollbar rounded-2xl overflow-hidden border">
-          ${photos.map(src => `<img src="${src}" class="carousel-slide h-56 w-full object-cover" />`).join("")}
+      const priceNum = parsePrice(item.price);
+      const isSoldOut = item.available === false;
+
+      document.getElementById("detailCategoryTag").textContent = item.category || "Cardápio";
+      document.getElementById("itemDetailBody").innerHTML = `
+        <div class="carousel-track flex overflow-x-auto no-scrollbar rounded-2xl bg-slate-900 border">
+          ${photos.map((src, idx) => `
+            <div class="carousel-slide relative h-60 sm:h-72">
+              <img src="${src}" alt="${item.title}" class="w-full h-full object-cover" />
+              <span class="absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">${idx + 1} / ${photos.length}</span>
+            </div>
+          `).join("")}
         </div>
-        ${photos.length > 1 ? `<p class="text-[10px] text-gray-400 text-center">Arraste para ver as ${photos.length} fotos</p>` : ""}
-        ${item.videoUrl ? `
+        ${photos.length > 1 ? `<p class="text-[10px] text-gray-400 text-center">Arraste para ver até ${photos.length} fotos</p>` : ""}
+
+        ${item.videoData ? `
           <div class="rounded-2xl overflow-hidden bg-black border">
-            <video src="${item.videoUrl}" controls playsinline class="w-full max-h-60 object-contain"></video>
+            <video src="${item.videoData}" controls autoplay muted playsinline class="w-full max-h-60 object-contain"></video>
           </div>
         ` : ""}
-        <p class="text-xs text-slate-600">${item.description || ""}</p>
-        <div class="flex items-center justify-between pt-2">
-          <span class="text-base font-black text-emerald-700">${formatBRL(parsePrice(item.price))}</span>
-          <button type="button" onclick="addToCart('${item.id}'); closeModal('itemDetailModal');"
-            class="bg-[#111827] text-amber-400 font-black px-4 py-2.5 rounded-xl text-xs">
-            Adicionar ao Pedido
-          </button>
+
+        <div class="flex items-start justify-between gap-2 pt-1">
+          <div>
+            <h3 class="font-black text-base text-slate-900">${item.title}</h3>
+            ${item.description ? `<p class="text-xs text-gray-600 mt-1">${item.description}</p>` : ""}
+          </div>
+          <span class="text-base font-black text-emerald-700 whitespace-nowrap">${formatBRL(priceNum)}</span>
         </div>
+
+        <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}'); closeModal('itemDetailModal');"`}
+          class="w-full py-3 rounded-xl font-black text-xs sm:text-sm ${isSoldOut ? 'bg-gray-200 text-gray-400' : 'bg-[#111827] text-amber-400 hover:bg-slate-800'}">
+          ${isSoldOut ? "Item Indisponível" : `Adicionar à Sacola • ${formatBRL(priceNum)}`}
+        </button>
       `;
+
       document.getElementById("itemDetailModal").classList.replace("hidden", "flex");
     };
 
-    // SACOLA E ENVIO DO PEDIDO COM NOME, CELULAR E MESA
+    // SACOLA E ENVIO DE PEDIDO
     window.addToCart = function(itemId) {
-      if (!customerProfile.fullName || !customerProfile.phone) {
-        openCustomerModal(false);
-        return;
-      }
       const item = menuItems.find(i => i.id === itemId);
       if (!item || item.available === false) return;
       const existing = cart.find(c => c.id === item.id);
-      if (existing) existing.qty += 1;
-      else cart.push({ id: item.id, title: item.title, unitPrice: parsePrice(item.price), qty: 1, obs: "" });
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ id: item.id, title: item.title, unitPrice: parsePrice(item.price), qty: 1, obs: "" });
+      }
       updateCartBar();
       showToast(`Adicionado: ${item.title}`);
     };
@@ -768,12 +800,13 @@
       bar.classList.remove("hidden");
       document.getElementById("cartCountBadge").textContent = count;
       document.getElementById("cartTotalText").textContent = formatBRL(getCartTotal());
-      updateCustomerHeader();
+      updateFixedClientHeader();
     }
 
     window.openCartModal = function() {
-      if (!customerProfile.fullName || !customerProfile.phone) {
-        openCustomerModal(false);
+      if (!clientInfo.fullName || !clientInfo.phone) {
+        openClientGateModal();
+        showToast("Informe nome completo e celular para enviar o pedido.");
         return;
       }
       renderCartModal();
@@ -783,12 +816,7 @@
     function renderCartModal() {
       const list = document.getElementById("cartItemsList");
       document.getElementById("modalCartTotal").textContent = formatBRL(getCartTotal());
-      updateCustomerHeader();
-
-      if (!cart.length) {
-        list.innerHTML = `<p class="text-center text-xs text-gray-400 py-8">Sacola vazia.</p>`;
-        return;
-      }
+      updateFixedClientHeader();
 
       list.innerHTML = cart.map((c, idx) => `
         <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
@@ -810,12 +838,12 @@
       `).join("");
     }
 
-    window.submitOrderToReception = async function() {
-      if (!cart.length) return;
-      if (!customerProfile.fullName || !customerProfile.phone) {
-        openCustomerModal(false);
+    window.submitOrderToAdmin = async function() {
+      if (!clientInfo.fullName || !clientInfo.phone) {
+        openClientGateModal();
         return;
       }
+      if (!cart.length) return;
 
       const btn = document.getElementById("sendOrderBtn");
       btn.disabled = true;
@@ -823,9 +851,9 @@
 
       try {
         await push(ref(db, "orders"), {
-          tableNumber: customerProfile.tableNumber || "01",
-          customerFullName: customerProfile.fullName,
-          customerPhone: customerProfile.phone,
+          tableNumber: fixedTable,
+          customerName: clientInfo.fullName,
+          customerPhone: clientInfo.phone,
           generalNote: (document.getElementById("orderGeneralNoteInput").value || "").trim(),
           items: cart,
           total: getCartTotal(),
@@ -837,7 +865,7 @@
         document.getElementById("orderGeneralNoteInput").value = "";
         updateCartBar();
         closeModal("cartModal");
-        showToast("Pedido enviado para o ADM!");
+        showToast(`Pedido da Mesa ${fixedTable} enviado!`);
       } catch (err) {
         showToast("Erro ao enviar pedido.");
       } finally {
@@ -846,10 +874,11 @@
       }
     };
 
-    // ADM & PEDIDOS DAS MESAS
+    // ADM
     window.openAdminGate = function() {
-      if (isAdminLogged) openAdminModal();
-      else {
+      if (isAdminLogged) {
+        openAdminModal();
+      } else {
         document.getElementById("adminPassInput").value = "";
         document.getElementById("loginModal").classList.replace("hidden", "flex");
       }
@@ -867,13 +896,16 @@
 
     function openAdminModal() {
       document.getElementById("cfgStoreName").value = storeConfig.storeName || "";
+      document.getElementById("cfgStoreSubtitle").value = storeConfig.subtitle || "";
+      document.getElementById("cfgUseHeaderBanner").checked = Boolean(storeConfig.useHeaderBanner);
+      document.getElementById("cfgHeaderBannerCaption").value = storeConfig.headerBannerCaption || "";
       document.getElementById("adminModal").classList.replace("hidden", "flex");
       renderAdminOrders();
       generateTableQrCode();
     }
 
     window.switchAdminTab = function(tab) {
-      ["orders", "items", "banners", "qrcodes"].forEach(t => {
+      ["orders", "items", "header", "qrcodes"].forEach(t => {
         document.getElementById(`admPane-${t}`).classList.toggle("hidden", t !== tab);
         document.getElementById(`tab-${t}`).className = t === tab
           ? "px-4 py-3 border-b-2 border-slate-900 text-slate-900 whitespace-nowrap"
@@ -881,84 +913,61 @@
       });
     };
 
-    window.setOrderFilter = function(f) {
-      orderFilter = f;
-      ["all", "novo", "preparo", "pronto"].forEach(k => {
-        document.getElementById(`ordFilter-${k}`).className = k === f
-          ? "px-3 py-1 rounded-full bg-slate-900 text-white"
-          : "px-3 py-1 rounded-full bg-slate-100 text-slate-700";
-      });
-      renderAdminOrders();
-    };
-
-    window.enableOrderSound = function() {
-      soundEnabled = true;
-      playBeep();
-      showToast("Alerta sonoro ativado!");
-    };
-
-    function playBeep() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = 880;
-        gain.gain.value = 0.15;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        setTimeout(() => { osc.stop(); ctx.close(); }, 220);
-      } catch (_) {}
-    }
-
-    window.updateOrderStatus = async function(orderId, status) {
-      await update(ref(db, `orders/${orderId}`), { status });
-      showToast(`Status: ${status}`);
-    };
-
-    window.deleteOrder = async function(orderId) {
-      if (!confirm("Remover este pedido?")) return;
-      await remove(ref(db, `orders/${orderId}`));
-    };
-
+    // PEDIDOS DAS VÁRIAS MESAS NA ADM
     function renderAdminOrders() {
       const box = document.getElementById("adminOrdersList");
-      const list = ordersList.filter(o => orderFilter === "all" || o.status === orderFilter);
+      if (!box) return;
+      const filter = document.getElementById("orderStatusFilter")?.value || "ativos";
+
+      const list = ordersList.filter(o => {
+        if (filter === "all") return true;
+        if (filter === "ativos") return o.status !== "finalizado";
+        return o.status === filter;
+      });
+
       if (!list.length) {
-        box.innerHTML = `<p class="text-center text-xs text-gray-400 py-8">Nenhum pedido encontrado.</p>`;
+        box.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-slate-50 rounded-2xl border">Nenhum pedido nesse filtro.</div>`;
         return;
       }
 
       box.innerHTML = list.map(o => {
-        const hora = o.createdAt ? new Date(o.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
-        const phoneClean = (o.customerPhone || "").replace(/\D/g, "");
+        const timeStr = o.createdAt ? new Date(o.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+        const badgeMap = {
+          novo: "bg-amber-100 text-amber-900",
+          preparo: "bg-blue-100 text-blue-900",
+          pronto: "bg-emerald-100 text-emerald-900",
+          finalizado: "bg-gray-200 text-gray-600"
+        };
+
         return `
-          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
-            <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 rounded-lg bg-[#111827] text-amber-400 font-black">Mesa ${o.tableNumber || "?"}</span>
-                <span class="font-black text-slate-900">${o.customerFullName || "Cliente"}</span>
-                <span class="text-gray-500 font-semibold">${o.customerPhone || ""}</span>
-                ${phoneClean ? `<a href="https://wa.me/55${phoneClean}" target="_blank" class="text-emerald-700 font-bold underline">WhatsApp</a>` : ""}
+                <span class="bg-[#111827] text-amber-400 text-xs font-black px-2.5 py-1 rounded-lg">Mesa ${o.tableNumber || "?"}</span>
+                <div>
+                  <p class="text-xs font-black text-slate-900">${o.customerName || "Cliente"} <span class="text-gray-500 font-semibold">• ${o.customerPhone || ""}</span></p>
+                  <p class="text-[10px] text-gray-400">${timeStr}</p>
+                </div>
               </div>
-              <span class="text-[11px] text-gray-400 font-bold">${hora} • <strong class="uppercase text-slate-700">${o.status || "novo"}</strong></span>
+              <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${badgeMap[o.status] || 'bg-slate-200'}">${o.status || "novo"}</span>
             </div>
 
-            <div class="space-y-1 pl-1">
+            <div class="bg-white rounded-xl p-2.5 border border-gray-100 space-y-1 text-xs">
               ${(o.items || []).map(it => `
-                <p class="font-semibold text-slate-800">• ${it.qty}x ${it.title} ${it.obs ? `<span class="text-amber-700">(${it.obs})</span>` : ""}</p>
+                <div class="flex justify-between gap-2">
+                  <span><strong>${it.qty}x</strong> ${it.title}${it.obs ? ` <em class="text-amber-700">(${it.obs})</em>` : ""}</span>
+                  <span class="font-bold">${formatBRL((it.unitPrice || 0) * (it.qty || 1))}</span>
+                </div>
               `).join("")}
-              ${o.generalNote ? `<p class="text-[11px] text-slate-600 italic">Obs: ${o.generalNote}</p>` : ""}
+              ${o.generalNote ? `<p class="text-[11px] text-amber-800 pt-1 border-t border-dashed">Obs: ${o.generalNote}</p>` : ""}
             </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-200">
-              <span class="font-black text-sm text-emerald-700">${formatBRL(o.total)}</span>
+            <div class="flex items-center justify-between gap-2 flex-wrap pt-1">
+              <span class="text-xs font-black text-emerald-700">Total: ${formatBRL(o.total)}</span>
               <div class="flex items-center gap-1.5">
-                <button onclick="updateOrderStatus('${o.id}', 'preparo')" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-bold text-[11px]">Em preparo</button>
-                <button onclick="updateOrderStatus('${o.id}', 'pronto')" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-bold text-[11px]">Pronto</button>
-                <button onclick="updateOrderStatus('${o.id}', 'finalizado')" class="px-2.5 py-1 rounded-lg bg-slate-200 text-slate-800 font-bold text-[11px]">Finalizar</button>
-                <button onclick="deleteOrder('${o.id}')" class="p-1.5 rounded-lg text-red-600 hover:bg-red-50"><i class="fa-solid fa-trash"></i></button>
+                <button onclick="setOrderStatus('${o.id}', 'preparo')" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold">Em preparo</button>
+                <button onclick="setOrderStatus('${o.id}', 'pronto')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[10px] font-bold">Pronto</button>
+                <button onclick="setOrderStatus('${o.id}', 'finalizado')" class="px-2.5 py-1 rounded-lg bg-slate-700 text-white text-[10px] font-bold">Finalizar</button>
               </div>
             </div>
           </div>
@@ -966,8 +975,13 @@
       }).join("");
     }
 
-    // UPLOAD FOTOS (ATÉ 10) E VÍDEO (ATÉ 15s)
-    function compressImg(file, maxW = 900, quality = 0.8) {
+    window.setOrderStatus = async function(orderId, status) {
+      await update(ref(db, `orders/${orderId}`), { status });
+      showToast(`Pedido atualizado: ${status}`);
+    };
+
+    // COMPRESSÃO DE IMAGEM + ATÉ 10 FOTOS + VÍDEO CURTO 20S
+    function compressImg(file, maxW = 1000, quality = 0.8) {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -986,102 +1000,83 @@
       });
     }
 
-    window.handleItemImagesUpload = async function(e) {
+    window.handleItemPhotosUpload = async function(e) {
       const files = Array.from(e.target.files || []);
-      if (!files.length) return;
-      if (files.length > 10) {
-        showToast("Máximo de 10 fotos por item!");
-        e.target.value = "";
+      const remaining = 10 - pendingItemPhotos.length;
+      if (remaining <= 0) {
+        showToast("Limite de 10 fotos atingido.");
         return;
       }
-      pendingItemImages = [];
-      for (const f of files) {
-        pendingItemImages.push(await compressImg(f, 850, 0.8));
+      for (const f of files.slice(0, remaining)) {
+        const compressed = await compressImg(f, 800, 0.78);
+        pendingItemPhotos.push(compressed);
       }
-      renderItemImagesPreview();
+      renderItemPhotosPreview();
     };
 
-    function renderItemImagesPreview() {
-      const box = document.getElementById("itemImagesPreview");
-      box.innerHTML = pendingItemImages.map((src, i) => `
-        <div class="relative w-16 h-16">
-          <img src="${src}" class="w-16 h-16 object-cover rounded-xl border" />
-          <button type="button" onclick="removePendingImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-black">×</button>
+    function renderItemPhotosPreview() {
+      document.getElementById("itemPhotosCountText").textContent = `${pendingItemPhotos.length} / 10 fotos selecionadas`;
+      document.getElementById("itemPhotosPreviewGrid").innerHTML = pendingItemPhotos.map((src, idx) => `
+        <div class="relative w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border">
+          <img src="${src}" class="w-full h-full object-cover" />
+          <button type="button" onclick="removePendingPhoto(${idx})" class="absolute top-0.5 right-0.5 bg-red-600 text-white w-4 h-4 rounded-full text-[9px] flex items-center justify-center">×</button>
         </div>
       `).join("");
     }
 
-    window.removePendingImage = function(idx) {
-      pendingItemImages.splice(idx, 1);
-      renderItemImagesPreview();
+    window.removePendingPhoto = function(idx) {
+      pendingItemPhotos.splice(idx, 1);
+      renderItemPhotosPreview();
     };
 
     window.handleItemVideoUpload = function(e) {
-      const file = e.target.files[0];
-      const statusEl = document.getElementById("itemVideoStatus");
-      if (!file) { pendingItemVideoFile = null; statusEl.textContent = ""; return; }
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-      const tempVideo = document.createElement("video");
-      tempVideo.preload = "metadata";
-      tempVideo.onloadedmetadata = () => {
-        URL.revokeObjectURL(tempVideo.src);
-        if (tempVideo.duration > 15.2) {
-          pendingItemVideoFile = null;
+      const tempUrl = URL.createObjectURL(file);
+      const vid = document.createElement("video");
+      vid.preload = "metadata";
+      vid.onloadedmetadata = () => {
+        const dur = vid.duration || 0;
+        URL.revokeObjectURL(tempUrl);
+        if (dur > 20.5) {
+          showToast("O vídeo deve ter no máximo 20 segundos.");
           e.target.value = "";
-          statusEl.textContent = "Vídeo maior que 15 segundos. Escolha um vídeo de até 15s.";
-          statusEl.className = "text-[10px] text-red-600 font-bold";
-          showToast("O vídeo deve ter no máximo 15 segundos!");
-        } else {
-          pendingItemVideoFile = file;
-          statusEl.textContent = `Vídeo válido (${Math.round(tempVideo.duration)}s): ${file.name}`;
-          statusEl.className = "text-[10px] text-emerald-700 font-bold";
+          return;
         }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          pendingItemVideo = ev.target.result;
+          document.getElementById("itemVideoStatusText").textContent = `Vídeo curto pronto (${Math.round(dur)}s)`;
+        };
+        reader.readAsDataURL(file);
       };
-      tempVideo.src = URL.createObjectURL(file);
+      vid.src = tempUrl;
     };
 
     window.handleSaveMenuItem = async function(e) {
       e.preventDefault();
-      const btn = document.getElementById("saveItemBtn");
-      btn.disabled = true;
-      btn.textContent = "Salvando...";
+      const editId = document.getElementById("editItemId").value;
+      const existing = editId ? menuItems.find(m => m.id === editId) : null;
+      const finalPhotos = pendingItemPhotos.length ? pendingItemPhotos.slice(0, 10) : (existing ? getItemPhotos(existing) : []);
 
-      try {
-        const editId = document.getElementById("editItemId").value;
-        const existing = editId ? menuItems.find(m => m.id === editId) : null;
+      const payload = {
+        title: document.getElementById("itemTitle").value.trim(),
+        category: document.getElementById("itemCategory").value,
+        price: document.getElementById("itemPrice").value.trim(),
+        oldPrice: document.getElementById("itemOldPrice").value.trim(),
+        description: document.getElementById("itemDesc").value.trim(),
+        available: document.getElementById("itemAvailable").checked,
+        photos: finalPhotos,
+        imageData: finalPhotos[0] || "",
+        videoData: pendingItemVideo || (existing ? existing.videoData || "" : ""),
+        timestamp: existing ? existing.timestamp : Date.now()
+      };
 
-        let videoUrl = (document.getElementById("itemVideoUrlInput").value || "").trim() || (existing ? existing.videoUrl : "");
-        if (pendingItemVideoFile) {
-          const vRef = sRef(storage, `menu_videos/${Date.now()}_${pendingItemVideoFile.name}`);
-          await uploadBytes(vRef, pendingItemVideoFile);
-          videoUrl = await getDownloadURL(vRef);
-        }
-
-        const imgs = pendingItemImages.length ? pendingItemImages.slice(0, 10) : (existing ? getItemPhotos(existing) : []);
-
-        const payload = {
-          title: document.getElementById("itemTitle").value.trim(),
-          category: document.getElementById("itemCategory").value,
-          price: document.getElementById("itemPrice").value.trim(),
-          oldPrice: document.getElementById("itemOldPrice").value.trim(),
-          description: document.getElementById("itemDesc").value.trim(),
-          available: document.getElementById("itemAvailable").checked,
-          images: imgs,
-          imageData: imgs[0] || "",
-          videoUrl,
-          timestamp: existing ? existing.timestamp : Date.now()
-        };
-
-        const targetRef = editId ? ref(db, `menu_items/${editId}`) : push(ref(db, "menu_items"));
-        await set(targetRef, payload);
-        resetMenuItemForm();
-        showToast("Item salvo na grade!");
-      } catch (err) {
-        showToast("Erro ao salvar item.");
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Salvar Item";
-      }
+      const targetRef = editId ? ref(db, `menu_items/${editId}`) : push(ref(db, "menu_items"));
+      await set(targetRef, payload);
+      resetMenuItemForm();
+      showToast("Item salvo no cardápio!");
     };
 
     window.startEditMenuItem = function(id) {
@@ -1094,10 +1089,11 @@
       document.getElementById("itemPrice").value = item.price || "";
       document.getElementById("itemOldPrice").value = item.oldPrice || "";
       document.getElementById("itemDesc").value = item.description || "";
-      document.getElementById("itemVideoUrlInput").value = item.videoUrl || "";
       document.getElementById("itemAvailable").checked = item.available !== false;
-      pendingItemImages = Array.isArray(item.images) ? [...item.images] : (item.imageData ? [item.imageData] : []);
-      renderItemImagesPreview();
+      pendingItemPhotos = Array.isArray(item.photos) ? [...item.photos] : (item.imageData ? [item.imageData] : []);
+      pendingItemVideo = item.videoData || "";
+      renderItemPhotosPreview();
+      document.getElementById("itemVideoStatusText").textContent = pendingItemVideo ? "Vídeo curto anexado" : "Nenhum vídeo curto anexado";
     };
 
     window.resetMenuItemForm = function() {
@@ -1107,100 +1103,117 @@
       document.getElementById("itemPrice").value = "";
       document.getElementById("itemOldPrice").value = "";
       document.getElementById("itemDesc").value = "";
-      document.getElementById("itemImagesInput").value = "";
-      document.getElementById("itemVideoFileInput").value = "";
-      document.getElementById("itemVideoUrlInput").value = "";
-      document.getElementById("itemVideoStatus").textContent = "";
-      pendingItemImages = [];
-      pendingItemVideoFile = null;
-      renderItemImagesPreview();
-    };
-
-    window.toggleItemAvailability = async function(id, avail) {
-      await update(ref(db, `menu_items/${id}`), { available: !avail });
+      document.getElementById("itemPhotosInput").value = "";
+      document.getElementById("itemVideoInput").value = "";
+      pendingItemPhotos = [];
+      pendingItemVideo = "";
+      renderItemPhotosPreview();
+      document.getElementById("itemVideoStatusText").textContent = "Nenhum vídeo curto anexado";
     };
 
     window.deleteMenuItem = async function(id) {
       if (!confirm("Excluir este item?")) return;
       await remove(ref(db, `menu_items/${id}`));
+      showToast("Item removido");
     };
 
     function renderAdminItemsList() {
       const box = document.getElementById("adminItemsList");
-      box.innerHTML = menuItems.map(m => {
-        const avail = m.available !== false;
-        const nFotos = getItemPhotos(m).length;
-        return `
-          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
-            <div class="min-w-0">
-              <p class="font-black text-slate-900 truncate">${m.title} <span class="text-emerald-700">(${formatBRL(parsePrice(m.price))})</span></p>
-              <p class="text-[10px] text-gray-500">${nFotos} foto(s) ${m.videoUrl ? "• Vídeo 15s" : ""} • ${avail ? "Disponível" : "Esgotado"}</p>
-            </div>
-            <div class="flex items-center gap-1 flex-shrink-0">
-              <button type="button" onclick="toggleItemAvailability('${m.id}', ${avail})" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-900 font-bold text-[10px]">
-                ${avail ? "Esgotar" : "Ativar"}
-              </button>
-              <button type="button" onclick="startEditMenuItem('${m.id}')" class="p-1.5 rounded-lg bg-blue-50 text-blue-700"><i class="fa-solid fa-pen"></i></button>
-              <button type="button" onclick="deleteMenuItem('${m.id}')" class="p-1.5 rounded-lg bg-red-50 text-red-600"><i class="fa-solid fa-trash"></i></button>
-            </div>
+      if (!box) return;
+      box.innerHTML = menuItems.map(m => `
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+          <div class="min-w-0">
+            <p class="font-black text-slate-900 truncate">${m.title} <span class="text-emerald-700">(${formatBRL(parsePrice(m.price))})</span></p>
+            <p class="text-[10px] text-gray-500">${getItemPhotos(m).length} foto(s) ${m.videoData ? "• Vídeo 20s" : ""}</p>
           </div>
-        `;
-      }).join("");
-    }
-
-    // BANNER CABEÇALHO
-    window.handleSaveStoreName = async function(e) {
-      e.preventDefault();
-      await update(ref(db, "restaurant_config"), {
-        storeName: (document.getElementById("cfgStoreName").value || "").trim() || storeConfig.storeName
-      });
-      showToast("Nome salvo!");
-    };
-
-    window.handleSlideImageUpload = async function(e) {
-      const f = e.target.files[0];
-      if (!f) return;
-      pendingSlideImage = await compressImg(f, 1200, 0.85);
-      showToast("Imagem do banner carregada!");
-    };
-
-    window.handleAddHeaderSlide = async function(e) {
-      e.preventDefault();
-      if (!pendingSlideImage) { showToast("Selecione uma imagem panorâmica."); return; }
-      await push(ref(db, "header_carousel"), {
-        title: document.getElementById("slideTitle").value.trim(),
-        subtitle: document.getElementById("slideSubtitle").value.trim(),
-        imageData: pendingSlideImage,
-        createdAt: Date.now()
-      });
-      document.getElementById("slideTitle").value = "";
-      document.getElementById("slideSubtitle").value = "";
-      pendingSlideImage = "";
-      showToast("Slide adicionado ao cabeçalho!");
-    };
-
-    window.deleteHeaderSlide = async function(id) {
-      await remove(ref(db, `header_carousel/${id}`));
-    };
-
-    function renderAdminSlides() {
-      const box = document.getElementById("adminSlidesList");
-      box.innerHTML = headerSlides.map(s => `
-        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-          <span class="font-bold truncate">${s.title}</span>
-          <button type="button" onclick="deleteHeaderSlide('${s.id}')" class="text-red-600 p-1"><i class="fa-solid fa-trash"></i></button>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button type="button" onclick="startEditMenuItem('${m.id}')" class="p-1.5 rounded-lg bg-blue-50 text-blue-700"><i class="fa-solid fa-pen"></i></button>
+            <button type="button" onclick="deleteMenuItem('${m.id}')" class="p-1.5 rounded-lg bg-red-50 text-red-600"><i class="fa-solid fa-trash"></i></button>
+          </div>
         </div>
       `).join("");
     }
 
-    // QR CODE
+    // CABEÇALHO + CARROSSEL PANORÂMICO
+    window.handleHeaderBannerUpload = async function(e) {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      pendingHeaderBannerImg = await compressImg(f, 1300, 0.82);
+      showToast("Banner do cabeçalho carregado!");
+    };
+
+    window.clearHeaderBanner = function() {
+      pendingHeaderBannerImg = "";
+      storeConfig.headerBannerImage = "";
+      storeConfig.useHeaderBanner = false;
+      document.getElementById("cfgUseHeaderBanner").checked = false;
+      renderHeaderConfig();
+    };
+
+    window.handleSaveHeaderConfig = async function(e) {
+      e.preventDefault();
+      await set(ref(db, "restaurant_config"), {
+        ...storeConfig,
+        storeName: (document.getElementById("cfgStoreName").value || "").trim() || storeConfig.storeName,
+        subtitle: (document.getElementById("cfgStoreSubtitle").value || "").trim(),
+        useHeaderBanner: document.getElementById("cfgUseHeaderBanner").checked,
+        headerBannerImage: pendingHeaderBannerImg || storeConfig.headerBannerImage || "",
+        headerBannerCaption: (document.getElementById("cfgHeaderBannerCaption").value || "").trim()
+      });
+      showToast("Cabeçalho salvo!");
+    };
+
+    window.handleSlideImageUpload = async function(e) {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      pendingSlideImg = await compressImg(f, 1300, 0.82);
+      showToast("Imagem do carrossel carregada!");
+    };
+
+    window.handleAddPanoramaSlide = async function(e) {
+      e.preventDefault();
+      if (!pendingSlideImg) {
+        showToast("Selecione uma imagem panorâmica.");
+        return;
+      }
+      await push(ref(db, "panorama_banners"), {
+        title: document.getElementById("slideTitle").value.trim(),
+        subtitle: document.getElementById("slideSubtitle").value.trim(),
+        imageData: pendingSlideImg,
+        timestamp: Date.now()
+      });
+      document.getElementById("slideTitle").value = "";
+      document.getElementById("slideSubtitle").value = "";
+      pendingSlideImg = "";
+      showToast("Slide adicionado ao carrossel de 5s!");
+    };
+
+    window.deletePanoramaSlide = async function(id) {
+      await remove(ref(db, `panorama_banners/${id}`));
+      showToast("Slide removido");
+    };
+
+    function renderAdminPanoramaList() {
+      const box = document.getElementById("adminPanoramaList");
+      if (!box) return;
+      box.innerHTML = panoramaSlides.map(s => `
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+          <span class="font-bold truncate">${s.title}</span>
+          <button type="button" onclick="deletePanoramaSlide('${s.id}')" class="text-red-600 p-1"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join("");
+    }
+
+    // QR CODE POR MESA
     window.generateTableQrCode = function() {
       const tbl = (document.getElementById("qrTableInput").value || "01").trim();
       const base = window.location.origin + window.location.pathname;
       const targetUrl = `${base}?mesa=${encodeURIComponent(tbl)}`;
       const box = document.getElementById("tableQrBox");
       box.innerHTML = "";
-      if (typeof QRCode !== "undefined") new QRCode(box, { text: targetUrl, width: 150, height: 150 });
+      if (typeof QRCode !== "undefined") {
+        new QRCode(box, { text: targetUrl, width: 150, height: 150 });
+      }
       document.getElementById("tableQrUrlText").textContent = targetUrl;
     };
 
@@ -1216,11 +1229,8 @@
       setTimeout(() => t.classList.add("opacity-0"), 2800);
     }
 
-    updateCustomerHeader();
+    updateFixedClientHeader();
     renderCategoryTabs();
-    if (!customerProfile.fullName || !customerProfile.phone) {
-      openCustomerModal(false);
-    }
   </script>
 </body>
 </html>
