@@ -53,7 +53,7 @@
     </div>
   </div>
 
-  <!-- PAINEL ADM COMPLETO (EXIBIDO APÓS LOGIN) -->
+  <!-- PAINEL ADM COMPLETO -->
   <div id="adminDashboard" class="hidden min-h-screen flex flex-col pb-12">
     <header class="sticky top-0 z-30 bg-[#111827] text-white shadow-md">
       <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
@@ -168,35 +168,46 @@
         <div id="adminItemsList" class="space-y-2"></div>
       </section>
 
-      <!-- ABA 3: CABEÇALHO EDITÁVEL + CARROSSEL PANORÂMICO (5S) -->
+      <!-- ABA 3: CABEÇALHO EM BORDA INFINITA + TEXTOS FLUTUANTES OPCIONAIS + CARROSSEL 5S -->
       <section id="pane-banners" class="space-y-4 hidden">
         <form onsubmit="handleSaveHeader(event)" class="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
-          <h3 class="text-xs sm:text-sm font-black text-slate-900">Cabeçalho Editável do Restaurante</h3>
+          <h3 class="text-xs sm:text-sm font-black text-slate-900">Cabeçalho no Topo (Banner Borda Infinita + Textos Flutuantes Opcionais)</h3>
+
+          <div class="flex flex-wrap gap-4 pt-1">
+            <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+              <input type="checkbox" id="cfgShowStoreName" checked class="accent-amber-500" />
+              <span>Exibir Nome do Restaurante (flutuante)</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+              <input type="checkbox" id="cfgShowStoreSubtitle" checked class="accent-amber-500" />
+              <span>Exibir Subtítulo (flutuante)</span>
+            </label>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Nome do Restaurante</label>
-              <input type="text" id="cfgStoreName" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs" />
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Nome do Restaurante (opcional)</label>
+              <input type="text" id="cfgStoreName" placeholder="Ex: SABOR & BRASA"
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs" />
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Subtítulo</label>
-              <input type="text" id="cfgStoreSubtitle" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs" />
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Subtítulo (opcional)</label>
+              <input type="text" id="cfgStoreSubtitle" placeholder="Ex: Faça seu pedido direto da mesa"
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs" />
             </div>
           </div>
 
-          <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
-            <input type="checkbox" id="cfgUseHeaderBanner" class="accent-amber-500" />
-            <span>Exibir banner panorâmico no cabeçalho</span>
-          </label>
+          <div class="flex items-center justify-between gap-2 pt-1">
+            <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+              <input type="checkbox" id="cfgUseHeaderBanner" class="accent-amber-500" />
+              <span>Exibir Banner Panorâmico no Cabeçalho</span>
+            </label>
+            <button type="button" onclick="clearHeaderBanner()" class="text-[11px] font-bold text-red-600">Remover imagem</button>
+          </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Imagem Panorâmica do Cabeçalho</label>
-              <input type="file" accept="image/*" onchange="handleHeaderBannerUpload(event)" class="w-full text-xs" />
-            </div>
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Legenda do Banner</label>
-              <input type="text" id="cfgHeaderBannerCaption" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs" />
-            </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Imagem Panorâmica do Cabeçalho (Borda Infinita)</label>
+            <input type="file" accept="image/*" onchange="handleHeaderBannerUpload(event)" class="w-full text-xs" />
           </div>
 
           <button type="submit" class="bg-[#111827] text-white font-black px-4 py-2 rounded-xl text-xs">
@@ -205,7 +216,7 @@
         </form>
 
         <form onsubmit="handleAddSlide(event)" class="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
-          <h3 class="text-xs sm:text-sm font-black text-slate-900">Banners Panorâmicos (Carrossel 5s + Arraste)</h3>
+          <h3 class="text-xs sm:text-sm font-black text-slate-900">Carrossel Panorâmico Borda Infinita (5s + Arraste)</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-[11px] font-bold text-slate-700 mb-1">Título *</label>
@@ -290,9 +301,10 @@
     let configData = {
       storeName: "CARDÁPIO DIGITAL",
       subtitle: "Faça seu pedido direto da mesa",
+      showStoreName: true,
+      showStoreSubtitle: true,
       useHeaderBanner: false,
       headerBannerImage: "",
-      headerBannerCaption: "",
       adminUser: "admin",
       adminPass: "admin123"
     };
@@ -371,10 +383,11 @@
     }
 
     function fillConfigInputs() {
+      document.getElementById("cfgShowStoreName").checked = configData.showStoreName !== false;
+      document.getElementById("cfgShowStoreSubtitle").checked = configData.showStoreSubtitle !== false;
       document.getElementById("cfgStoreName").value = configData.storeName || "";
       document.getElementById("cfgStoreSubtitle").value = configData.subtitle || "";
       document.getElementById("cfgUseHeaderBanner").checked = Boolean(configData.useHeaderBanner);
-      document.getElementById("cfgHeaderBannerCaption").value = configData.headerBannerCaption || "";
       document.getElementById("cfgAdminUser").value = configData.adminUser || "admin";
       document.getElementById("cfgAdminPass").value = configData.adminPass || "admin123";
     }
@@ -453,7 +466,7 @@
       showToast(`Status alterado para: ${status}`);
     };
 
-    function compressImg(file, maxW = 1000, quality = 0.8) {
+    function compressImg(file, maxW = 1400, quality = 0.84) {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -477,7 +490,7 @@
       const left = 10 - pendingPhotos.length;
       if (left <= 0) { showToast("Máximo de 10 fotos atingido."); return; }
       for (const f of files.slice(0, left)) {
-        pendingPhotos.push(await compressImg(f, 800, 0.78));
+        pendingPhotos.push(await compressImg(f, 900, 0.8));
       }
       renderPhotosPreview();
     };
@@ -604,19 +617,29 @@
     window.handleHeaderBannerUpload = async function(e) {
       const f = e.target.files?.[0];
       if (!f) return;
-      pendingHeaderImg = await compressImg(f, 1300, 0.82);
+      pendingHeaderImg = await compressImg(f, 1500, 0.85);
       showToast("Imagem do cabeçalho carregada.");
+    };
+
+    window.clearHeaderBanner = async function() {
+      pendingHeaderImg = "";
+      configData.headerBannerImage = "";
+      configData.useHeaderBanner = false;
+      document.getElementById("cfgUseHeaderBanner").checked = false;
+      await set(ref(db, "restaurant_config"), configData);
+      showToast("Banner do cabeçalho removido.");
     };
 
     window.handleSaveHeader = async function(e) {
       e.preventDefault();
       await set(ref(db, "restaurant_config"), {
         ...configData,
-        storeName: (document.getElementById("cfgStoreName").value || "").trim() || configData.storeName,
+        showStoreName: document.getElementById("cfgShowStoreName").checked,
+        showStoreSubtitle: document.getElementById("cfgShowStoreSubtitle").checked,
+        storeName: (document.getElementById("cfgStoreName").value || "").trim(),
         subtitle: (document.getElementById("cfgStoreSubtitle").value || "").trim(),
         useHeaderBanner: document.getElementById("cfgUseHeaderBanner").checked,
-        headerBannerImage: pendingHeaderImg || configData.headerBannerImage || "",
-        headerBannerCaption: (document.getElementById("cfgHeaderBannerCaption").value || "").trim()
+        headerBannerImage: pendingHeaderImg || configData.headerBannerImage || ""
       });
       showToast("Cabeçalho atualizado!");
     };
@@ -624,7 +647,7 @@
     window.handleSlideUpload = async function(e) {
       const f = e.target.files?.[0];
       if (!f) return;
-      pendingSlideImg = await compressImg(f, 1300, 0.82);
+      pendingSlideImg = await compressImg(f, 1500, 0.85);
       showToast("Imagem do carrossel carregada.");
     };
 
