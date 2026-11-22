@@ -105,13 +105,13 @@
       </div>
     </section>
 
-    <!-- BUSCA + DEPARTAMENTOS/CATEGORIAS + SELETOR DE LAYOUT (GRADE / LISTA) -->
+    <!-- BUSCA POR PALAVRAS-CHAVE + DEPARTAMENTOS + SELETOR DE LAYOUT -->
     <section class="bg-white rounded-2xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
       <div class="flex items-center gap-2">
         <div class="relative flex items-center flex-1">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-xs"></i>
           <input type="search" id="menuSearchInput" oninput="renderMenu()"
-            placeholder="Buscar prato, combo, lanche, bebida ou promoção..."
+            placeholder="Buscar por palavra-chave dos posts (ex: bacon, combo, bebida...)"
             class="w-full bg-slate-100 text-slate-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
         </div>
 
@@ -127,7 +127,11 @@
         </div>
       </div>
 
-      <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
+      <!-- PALAVRAS-CHAVE EXTRAÍDAS DOS POSTS -->
+      <div id="keywordChipsRow" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
+
+      <!-- DEPARTAMENTOS / CATEGORIAS -->
+      <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5 border-t border-gray-100"></div>
     </section>
 
     <!-- CARROSSEL PANORÂMICO POSICIONADO ABAIXO DOS DEPARTAMENTOS (AUTO 5S + ARRASTE LATERAL) -->
@@ -151,6 +155,39 @@
       </div>
     </section>
   </main>
+
+  <!-- OVERLAY DE VÍDEO AMPLIADO (CLIQUE PARA AMPLIAR / OUTRO CLIQUE PARA RETORNAR À GRADE) -->
+  <div id="expandedVideoOverlay" onclick="closeExpandedVideo()"
+    class="fixed inset-0 z-50 bg-black/92 hidden items-center justify-center p-3 sm:p-6 cursor-pointer">
+    <div onclick="event.stopPropagation()" class="relative w-full max-w-3xl rounded-3xl overflow-hidden bg-black border border-white/15 shadow-2xl">
+      <div class="flex items-center justify-between px-4 py-2.5 bg-slate-950/90 text-white border-b border-white/10">
+        <span id="expandedVideoTitle" class="text-xs sm:text-sm font-black text-amber-400 truncate">Vídeo do Post</span>
+        <div class="flex items-center gap-2">
+          <button type="button" id="expandedVideoMuteBtn" onclick="toggleExpandedVideoMute()"
+            class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold flex items-center gap-1">
+            <i id="expandedVideoMuteIcon" class="fa-solid fa-volume-xmark text-amber-400"></i>
+            <span id="expandedVideoMuteLabel">Mudo</span>
+          </button>
+          <button type="button" onclick="closeExpandedVideo()"
+            class="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 text-[11px] font-black flex items-center gap-1">
+            <i class="fa-solid fa-compress"></i>
+            <span>Voltar à Grade</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Clicar na área do vídeo também retorna à grade (exceto quando clicar nos controles nativos) -->
+      <div onclick="closeExpandedVideo()" class="bg-black flex items-center justify-center cursor-pointer">
+        <video id="expandedVideoPlayer" autoplay loop muted playsinline controls
+          onclick="event.stopPropagation()"
+          class="w-full max-h-[75vh] object-contain"></video>
+      </div>
+
+      <div onclick="closeExpandedVideo()" class="py-2 text-center text-[11px] text-gray-300 bg-slate-950 cursor-pointer">
+        Toque fora do vídeo ou em "Voltar à Grade" para retornar
+      </div>
+    </div>
+  </div>
 
   <!-- SACOLA FLUTUANTE -->
   <div id="cartBar" class="fixed bottom-3 inset-x-3 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-6xl z-30 hidden">
@@ -303,6 +340,7 @@
     let lockedClient = JSON.parse(sessionStorage.getItem(`cliente_selo_mesa_${fixedTable}`) || "null");
 
     let currentCategory = "all";
+    let selectedKeyword = "";
     let feedLayout = localStorage.getItem("cardapio_feed_layout") || "grid";
     let menuItems = [];
     let panoramaSlides = [];
@@ -313,7 +351,8 @@
     let carouselPauseUntil = 0;
     let knownReadyIds = new Set();
     let initialOrdersLoaded = false;
-    let unmutedItemId = null;
+
+    const mutedCardVideos = new Map();
 
     let sharedAudioCtx = null;
 
@@ -463,6 +502,7 @@
     onValue(ref(db, "menu_items"), (snap) => {
       const val = snap.val();
       menuItems = val ? Object.entries(val).map(([id, v]) => ({ id, ...v })) : [];
+      renderKeywordChips();
       renderMenu();
     });
 
@@ -597,6 +637,74 @@
       document.getElementById("myOrdersModal").classList.replace("hidden", "flex");
     };
 
+    // PALAVRAS-CHAVE UTILIZADAS NOS POSTS
+    function extractKeywordsFromItems(itemsArr) {
+      const stopWords = new Set(["para", "com", "sem", "de", "da", "do", "das", "dos", "e", "ou", "um", "uma", "no", "na", "por", "em", "ao", "aos", "que", "mais"]);
+      const freq = new Map();
+
+      itemsArr.forEach(item => {
+        if (item.category) {
+          const cat = String(item.category).toLowerCase().trim();
+          freq.set(cat, (freq.get(cat) || 0) + 3);
+        }
+        const rawText = `${item.title || ""} ${item.description || ""} ${item.keywords || ""}`
+          .toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        rawText
+          .split(/[^a-z0-9ç]+/i)
+          .map(w => w.trim())
+          .filter(w => w.length >= 3 && !stopWords.has(w))
+          .forEach(word => {
+            freq.set(word, (freq.get(word) || 0) + 1);
+          });
+      });
+
+      return [...freq.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 12)
+        .map(([word]) => word);
+    }
+
+    function renderKeywordChips() {
+      const chipsBox = document.getElementById("keywordChipsRow");
+      if (!chipsBox) return;
+      const keywords = extractKeywordsFromItems(menuItems);
+
+      if (!keywords.length) {
+        chipsBox.innerHTML = "";
+        return;
+      }
+
+      chipsBox.innerHTML = `
+        <span class="text-[10px] font-black uppercase tracking-wider text-gray-400 whitespace-nowrap mr-0.5">
+          <i class="fa-solid fa-hashtag text-amber-500 mr-0.5"></i>Palavras-chave:
+        </span>
+        ${keywords.map(kw => {
+          const active = selectedKeyword === kw;
+          return `
+            <button type="button" onclick="toggleKeywordFilter('${kw}')"
+              class="px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition ${active ? 'bg-amber-400 text-slate-950' : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200/70'}">
+              #${kw}
+            </button>
+          `;
+        }).join("")}
+      `;
+    }
+
+    window.toggleKeywordFilter = function(kw) {
+      selectedKeyword = selectedKeyword === kw ? "" : kw;
+      const input = document.getElementById("menuSearchInput");
+      if (selectedKeyword) {
+        input.value = selectedKeyword;
+      } else if (input.value.trim().toLowerCase() === kw) {
+        input.value = "";
+      }
+      renderKeywordChips();
+      renderMenu();
+    };
+
+    // CARROSSEL PANORÂMICO (5S + ARRASTE)
     function renderPanoramaCarousel() {
       const section = document.getElementById("panoramaCarouselSection");
       const track = document.getElementById("panoramaTrack");
@@ -691,71 +799,137 @@
       return ["https://placehold.co/600x400/111827/fbbf24?text=Cardapio"];
     }
 
-    // SOM OPCIONAL PARA VÍDEOS CURTOS VISÍVEIS NO FEED
-    window.toggleCardVideoSound = function(event, itemId) {
+    // CONTROLE DE SOM OPCIONAL NO VÍDEO DO CARD
+    window.toggleCardVideoMute = function(event, itemId) {
       event.stopPropagation();
       unlockAudioContext();
+      const currentMuted = mutedCardVideos.get(itemId) ?? true;
+      const nextMuted = !currentMuted;
+      mutedCardVideos.set(itemId, nextMuted);
 
-      if (unmutedItemId === itemId) {
-        unmutedItemId = null;
-      } else {
-        unmutedItemId = itemId;
+      const vid = document.getElementById(`cardVid-${itemId}`);
+      if (vid) vid.muted = nextMuted;
+
+      const icon = document.getElementById(`cardMuteIcon-${itemId}`);
+      if (icon) {
+        icon.className = nextMuted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
       }
-
-      document.querySelectorAll("video[data-card-video]").forEach(vid => {
-        const isTarget = vid.getAttribute("data-card-video") === itemId;
-        vid.muted = !isTarget;
-        if (isTarget) {
-          vid.play().catch(() => {});
-        }
-      });
-
-      document.querySelectorAll("button[data-sound-btn]").forEach(btn => {
-        const isTarget = btn.getAttribute("data-sound-btn") === itemId;
-        if (isTarget) {
-          btn.innerHTML = `<i class="fa-solid fa-volume-high"></i><span>Som</span>`;
-          btn.className = "px-2 py-1 rounded-lg bg-emerald-600 text-white text-[10px] font-black flex items-center gap-1 shadow";
-        } else {
-          btn.innerHTML = `<i class="fa-solid fa-volume-xmark"></i><span>Mudo</span>`;
-          btn.className = "px-2 py-1 rounded-lg bg-black/75 text-white text-[10px] font-bold flex items-center gap-1";
-        }
-      });
     };
 
-    function renderCardMedia(item, photos, sizeClasses) {
-      const hasVideo = Boolean(item.videoData);
-      const isUnmuted = unmutedItemId === item.id;
+    // AMPLIA O VÍDEO AO CLICAR; OUTRO CLIQUE RETORNA À GRADE
+    window.openExpandedVideo = function(event, itemId) {
+      event.stopPropagation();
+      unlockAudioContext();
+      const item = menuItems.find(m => m.id === itemId);
+      if (!item || !item.videoData) return;
+
+      const overlay = document.getElementById("expandedVideoOverlay");
+      const player = document.getElementById("expandedVideoPlayer");
+      const titleEl = document.getElementById("expandedVideoTitle");
+
+      titleEl.textContent = item.title || "Vídeo do Post";
+      player.src = item.videoData;
+      player.muted = mutedCardVideos.get(itemId) ?? true;
+      syncExpandedMuteUi(player.muted);
+      overlay.classList.replace("hidden", "flex");
+      player.play().catch(() => {});
+    };
+
+    window.toggleExpandedVideoMute = function() {
+      unlockAudioContext();
+      const player = document.getElementById("expandedVideoPlayer");
+      player.muted = !player.muted;
+      syncExpandedMuteUi(player.muted);
+    };
+
+    function syncExpandedMuteUi(isMuted) {
+      document.getElementById("expandedVideoMuteIcon").className = isMuted
+        ? "fa-solid fa-volume-xmark text-amber-400"
+        : "fa-solid fa-volume-high text-emerald-400";
+      document.getElementById("expandedVideoMuteLabel").textContent = isMuted ? "Mudo" : "Com Som";
+    }
+
+    window.closeExpandedVideo = function() {
+      const overlay = document.getElementById("expandedVideoOverlay");
+      const player = document.getElementById("expandedVideoPlayer");
+      if (player) {
+        player.pause();
+        player.removeAttribute("src");
+        player.load();
+      }
+      if (overlay) overlay.classList.replace("flex", "hidden");
+    };
+
+    // PASSAGEM LATERAL DIRETA DE MÚLTIPLAS FOTOS NO CARD
+    window.updateCardPhotoCounter = function(trackEl, itemId, total) {
+      if (!trackEl || !trackEl.clientWidth) return;
+      const idx = Math.min(total - 1, Math.max(0, Math.round(trackEl.scrollLeft / trackEl.clientWidth)));
+      const badge = document.getElementById(`cardPhotoCounter-${itemId}`);
+      if (badge) badge.textContent = `${idx + 1}/${total}`;
+    };
+
+    function buildCardMediaHtml(item, heightClasses) {
+      const photos = getItemPhotos(item);
+      const isMuted = mutedCardVideos.get(item.id) ?? true;
+
+      if (item.videoData) {
+        return `
+          <div class="relative ${heightClasses} bg-slate-950 overflow-hidden select-none">
+            <video id="cardVid-${item.id}" src="${item.videoData}" autoplay loop ${isMuted ? "muted" : ""} playsinline
+              onclick="openExpandedVideo(event, '${item.id}')"
+              title="Toque para ampliar • Toque novamente para voltar"
+              class="w-full h-full object-cover cursor-zoom-in"></video>
+
+            <span class="pointer-events-none absolute top-2 left-2 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded">
+              <i class="fa-solid fa-expand mr-0.5"></i>20s
+            </span>
+
+            <button type="button" onclick="toggleCardVideoMute(event, '${item.id}')"
+              title="Ativar ou silenciar som"
+              class="absolute bottom-2 right-2 z-10 w-8 h-8 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center text-xs border border-white/20">
+              <i id="cardMuteIcon-${item.id}" class="fa-solid ${isMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i>
+            </button>
+          </div>
+        `;
+      }
+
+      if (photos.length > 1) {
+        return `
+          <div class="relative ${heightClasses} bg-slate-100 overflow-hidden">
+            <div onscroll="updateCardPhotoCounter(this, '${item.id}', ${photos.length})"
+              class="carousel-track flex w-full h-full overflow-x-auto no-scrollbar scroll-smooth">
+              ${photos.map(src => `
+                <div onclick="openItemDetail('${item.id}')" class="carousel-slide w-full h-full cursor-pointer">
+                  <img src="${src}" alt="${item.title}" class="w-full h-full object-cover block" />
+                </div>
+              `).join("")}
+            </div>
+            <span id="cardPhotoCounter-${item.id}"
+              class="pointer-events-none absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              1/${photos.length} • Arraste
+            </span>
+          </div>
+        `;
+      }
 
       return `
-        <div onclick="openItemDetail('${item.id}')" class="relative ${sizeClasses} bg-slate-900 overflow-hidden cursor-pointer">
-          ${hasVideo
-            ? `<video src="${item.videoData}" data-card-video="${item.id}" autoplay loop ${isUnmuted ? "" : "muted"} playsinline class="w-full h-full object-cover"></video>`
-            : `<img src="${photos[0]}" alt="${item.title}" class="w-full h-full object-cover" />`
-          }
-
-          <div class="absolute top-2 left-2 flex items-center gap-1 pointer-events-none">
-            ${photos.length > 1 ? `<span class="bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-images mr-0.5"></i>${photos.length}</span>` : ""}
-            ${hasVideo ? `<span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded"><i class="fa-solid fa-video mr-0.5"></i>20s</span>` : ""}
-          </div>
-
-          ${hasVideo ? `
-            <button type="button" data-sound-btn="${item.id}" onclick="toggleCardVideoSound(event, '${item.id}')"
-              title="Ativar ou desativar som do vídeo"
-              class="absolute top-2 right-2 px-2 py-1 rounded-lg text-[10px] flex items-center gap-1 transition ${isUnmuted ? 'bg-emerald-600 text-white font-black shadow' : 'bg-black/75 text-white font-bold'}">
-              <i class="fa-solid ${isUnmuted ? 'fa-volume-high' : 'fa-volume-xmark'}"></i>
-              <span>${isUnmuted ? 'Som' : 'Mudo'}</span>
-            </button>
-          ` : (item.available === false ? `<span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded">ESGOTADO</span>` : "")}
+        <div onclick="openItemDetail('${item.id}')" class="relative ${heightClasses} bg-slate-100 overflow-hidden cursor-pointer">
+          <img src="${photos[0]}" alt="${item.title}" class="w-full h-full object-cover block" />
         </div>
       `;
     }
 
     function renderMenu() {
       const container = document.getElementById("menuItemsContainer");
-      const q = (document.getElementById("menuSearchInput").value || "").trim().toLowerCase();
+      const rawQ = (document.getElementById("menuSearchInput").value || "").trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
       const list = menuItems.filter(item => {
         const matchCat = currentCategory === "all" || item.category === currentCategory;
-        const matchQ = !q || (item.title || "").toLowerCase().includes(q) || (item.description || "").toLowerCase().includes(q);
+        const searchable = `${item.title || ""} ${item.description || ""} ${item.category || ""} ${item.keywords || ""}`
+          .toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const matchQ = !rawQ || searchable.includes(rawQ);
         return matchCat && matchQ;
       });
 
@@ -764,26 +938,24 @@
         : "grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4";
 
       if (!list.length) {
-        container.innerHTML = `<div class="col-span-full py-14 text-center text-gray-400 bg-white rounded-2xl border border-gray-200 text-xs font-semibold">Nenhum item encontrado.</div>`;
+        container.innerHTML = `<div class="col-span-full py-14 text-center text-gray-400 bg-white rounded-2xl border border-gray-200 text-xs font-semibold">Nenhum item encontrado para essa palavra-chave.</div>`;
         return;
       }
 
       if (feedLayout === "list") {
         container.innerHTML = list.map(item => {
-          const photos = getItemPhotos(item);
           const priceNum = parsePrice(item.price);
           const oldNum = parsePrice(item.oldPrice);
           const isSoldOut = item.available === false;
           return `
             <article class="bg-white rounded-2xl border border-gray-200 p-3 shadow-2xs flex items-center gap-3.5 ${isSoldOut ? 'opacity-65' : ''}">
-              ${renderCardMedia(item, photos, "w-28 h-28 sm:w-36 sm:h-32 rounded-xl flex-shrink-0")}
+              <div class="w-28 h-28 sm:w-36 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
+                ${buildCardMediaHtml(item, "w-full h-full")}
+              </div>
 
               <div class="flex-1 min-w-0 flex flex-col justify-between self-stretch">
                 <div onclick="openItemDetail('${item.id}')" class="cursor-pointer space-y-1">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug">${item.title}</h3>
-                    ${isSoldOut ? `<span class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded">ESGOTADO</span>` : ""}
-                  </div>
+                  <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug">${item.title}</h3>
                   ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
                 </div>
 
@@ -805,19 +977,18 @@
       }
 
       container.innerHTML = list.map(item => {
-        const photos = getItemPhotos(item);
         const priceNum = parsePrice(item.price);
         const oldNum = parsePrice(item.oldPrice);
         const isSoldOut = item.available === false;
         return `
           <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? 'opacity-65' : ''}">
             <div>
-              ${renderCardMedia(item, photos, "w-full h-44 sm:h-52 lg:h-56")}
+              <div class="relative">
+                ${buildCardMediaHtml(item, "h-44 sm:h-52 lg:h-56 w-full")}
+                ${isSoldOut ? `<span class="pointer-events-none absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded z-10">ESGOTADO</span>` : ""}
+              </div>
               <div onclick="openItemDetail('${item.id}')" class="p-3 sm:p-3.5 space-y-1 cursor-pointer">
-                <div class="flex items-center justify-between gap-1">
-                  <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug line-clamp-1">${item.title}</h3>
-                  ${isSoldOut && item.videoData ? `<span class="bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded flex-shrink-0">ESGOTADO</span>` : ""}
-                </div>
+                <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug line-clamp-1">${item.title}</h3>
                 ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
               </div>
             </div>
