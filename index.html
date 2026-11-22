@@ -111,7 +111,7 @@
         <div class="relative flex items-center flex-1">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-xs"></i>
           <input type="search" id="menuSearchInput" oninput="renderMenu()"
-            placeholder="Buscar por palavra-chave dos posts (ex: bacon, combo, bebida...)"
+            placeholder="Buscar prato, ingrediente ou palavra-chave..."
             class="w-full bg-slate-100 text-slate-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
         </div>
 
@@ -127,11 +127,11 @@
         </div>
       </div>
 
-      <!-- PALAVRAS-CHAVE EXTRAÍDAS DOS POSTS -->
-      <div id="keywordChipsRow" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
+      <!-- PALAVRAS-CHAVE OCULTAS PARA OTIMIZAR ESPAÇO (BUSCA CONTINUA ATIVA) -->
+      <div id="keywordChipsRow" class="hidden"></div>
 
       <!-- DEPARTAMENTOS / CATEGORIAS -->
-      <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5 border-t border-gray-100"></div>
+      <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
     </section>
 
     <!-- CARROSSEL PANORÂMICO POSICIONADO ABAIXO DOS DEPARTAMENTOS (AUTO 5S + ARRASTE LATERAL) -->
@@ -156,36 +156,18 @@
     </section>
   </main>
 
-  <!-- OVERLAY DE VÍDEO AMPLIADO (CLIQUE PARA AMPLIAR / OUTRO CLIQUE PARA RETORNAR À GRADE) -->
+  <!-- OVERLAY DE VÍDEO CURTO AMPLIADO LEVEMENTE (LIMPO, APENAS COM X PARA RETORNAR) -->
   <div id="expandedVideoOverlay" onclick="closeExpandedVideo()"
-    class="fixed inset-0 z-50 bg-black/92 hidden items-center justify-center p-3 sm:p-6 cursor-pointer">
-    <div onclick="event.stopPropagation()" class="relative w-full max-w-3xl rounded-3xl overflow-hidden bg-black border border-white/15 shadow-2xl">
-      <div class="flex items-center justify-between px-4 py-2.5 bg-slate-950/90 text-white border-b border-white/10">
-        <span id="expandedVideoTitle" class="text-xs sm:text-sm font-black text-amber-400 truncate">Vídeo do Post</span>
-        <div class="flex items-center gap-2">
-          <button type="button" id="expandedVideoMuteBtn" onclick="toggleExpandedVideoMute()"
-            class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold flex items-center gap-1">
-            <i id="expandedVideoMuteIcon" class="fa-solid fa-volume-xmark text-amber-400"></i>
-            <span id="expandedVideoMuteLabel">Mudo</span>
-          </button>
-          <button type="button" onclick="closeExpandedVideo()"
-            class="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 text-[11px] font-black flex items-center gap-1">
-            <i class="fa-solid fa-compress"></i>
-            <span>Voltar à Grade</span>
-          </button>
-        </div>
-      </div>
+    class="fixed inset-0 z-50 bg-black/80 hidden items-center justify-center p-4">
+    <div onclick="event.stopPropagation()"
+      class="relative w-full max-w-xl rounded-2xl overflow-hidden bg-black shadow-2xl transition-transform duration-200 scale-100">
+      <button type="button" onclick="closeExpandedVideo()" aria-label="Fechar vídeo"
+        class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-black/65 hover:bg-black/85 text-white flex items-center justify-center text-sm">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
 
-      <!-- Clicar na área do vídeo também retorna à grade (exceto quando clicar nos controles nativos) -->
-      <div onclick="closeExpandedVideo()" class="bg-black flex items-center justify-center cursor-pointer">
-        <video id="expandedVideoPlayer" autoplay loop muted playsinline controls
-          onclick="event.stopPropagation()"
-          class="w-full max-h-[75vh] object-contain"></video>
-      </div>
-
-      <div onclick="closeExpandedVideo()" class="py-2 text-center text-[11px] text-gray-300 bg-slate-950 cursor-pointer">
-        Toque fora do vídeo ou em "Voltar à Grade" para retornar
-      </div>
+      <video id="expandedVideoPlayer" autoplay loop muted playsinline
+        class="w-full max-h-[68vh] object-cover block"></video>
     </div>
   </div>
 
@@ -340,7 +322,6 @@
     let lockedClient = JSON.parse(sessionStorage.getItem(`cliente_selo_mesa_${fixedTable}`) || "null");
 
     let currentCategory = "all";
-    let selectedKeyword = "";
     let feedLayout = localStorage.getItem("cardapio_feed_layout") || "grid";
     let menuItems = [];
     let panoramaSlides = [];
@@ -502,7 +483,6 @@
     onValue(ref(db, "menu_items"), (snap) => {
       const val = snap.val();
       menuItems = val ? Object.entries(val).map(([id, v]) => ({ id, ...v })) : [];
-      renderKeywordChips();
       renderMenu();
     });
 
@@ -637,73 +617,6 @@
       document.getElementById("myOrdersModal").classList.replace("hidden", "flex");
     };
 
-    // PALAVRAS-CHAVE UTILIZADAS NOS POSTS
-    function extractKeywordsFromItems(itemsArr) {
-      const stopWords = new Set(["para", "com", "sem", "de", "da", "do", "das", "dos", "e", "ou", "um", "uma", "no", "na", "por", "em", "ao", "aos", "que", "mais"]);
-      const freq = new Map();
-
-      itemsArr.forEach(item => {
-        if (item.category) {
-          const cat = String(item.category).toLowerCase().trim();
-          freq.set(cat, (freq.get(cat) || 0) + 3);
-        }
-        const rawText = `${item.title || ""} ${item.description || ""} ${item.keywords || ""}`
-          .toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-        rawText
-          .split(/[^a-z0-9ç]+/i)
-          .map(w => w.trim())
-          .filter(w => w.length >= 3 && !stopWords.has(w))
-          .forEach(word => {
-            freq.set(word, (freq.get(word) || 0) + 1);
-          });
-      });
-
-      return [...freq.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 12)
-        .map(([word]) => word);
-    }
-
-    function renderKeywordChips() {
-      const chipsBox = document.getElementById("keywordChipsRow");
-      if (!chipsBox) return;
-      const keywords = extractKeywordsFromItems(menuItems);
-
-      if (!keywords.length) {
-        chipsBox.innerHTML = "";
-        return;
-      }
-
-      chipsBox.innerHTML = `
-        <span class="text-[10px] font-black uppercase tracking-wider text-gray-400 whitespace-nowrap mr-0.5">
-          <i class="fa-solid fa-hashtag text-amber-500 mr-0.5"></i>Palavras-chave:
-        </span>
-        ${keywords.map(kw => {
-          const active = selectedKeyword === kw;
-          return `
-            <button type="button" onclick="toggleKeywordFilter('${kw}')"
-              class="px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition ${active ? 'bg-amber-400 text-slate-950' : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200/70'}">
-              #${kw}
-            </button>
-          `;
-        }).join("")}
-      `;
-    }
-
-    window.toggleKeywordFilter = function(kw) {
-      selectedKeyword = selectedKeyword === kw ? "" : kw;
-      const input = document.getElementById("menuSearchInput");
-      if (selectedKeyword) {
-        input.value = selectedKeyword;
-      } else if (input.value.trim().toLowerCase() === kw) {
-        input.value = "";
-      }
-      renderKeywordChips();
-      renderMenu();
-    };
-
     // CARROSSEL PANORÂMICO (5S + ARRASTE)
     function renderPanoramaCarousel() {
       const section = document.getElementById("panoramaCarouselSection");
@@ -816,7 +729,7 @@
       }
     };
 
-    // AMPLIA O VÍDEO AO CLICAR; OUTRO CLIQUE RETORNA À GRADE
+    // AMPLIA LEVEMENTE O VÍDEO AO CLICAR; X OU CLIQUE FORA RETORNA À GRADE
     window.openExpandedVideo = function(event, itemId) {
       event.stopPropagation();
       unlockAudioContext();
@@ -825,29 +738,12 @@
 
       const overlay = document.getElementById("expandedVideoOverlay");
       const player = document.getElementById("expandedVideoPlayer");
-      const titleEl = document.getElementById("expandedVideoTitle");
 
-      titleEl.textContent = item.title || "Vídeo do Post";
       player.src = item.videoData;
       player.muted = mutedCardVideos.get(itemId) ?? true;
-      syncExpandedMuteUi(player.muted);
       overlay.classList.replace("hidden", "flex");
       player.play().catch(() => {});
     };
-
-    window.toggleExpandedVideoMute = function() {
-      unlockAudioContext();
-      const player = document.getElementById("expandedVideoPlayer");
-      player.muted = !player.muted;
-      syncExpandedMuteUi(player.muted);
-    };
-
-    function syncExpandedMuteUi(isMuted) {
-      document.getElementById("expandedVideoMuteIcon").className = isMuted
-        ? "fa-solid fa-volume-xmark text-amber-400"
-        : "fa-solid fa-volume-high text-emerald-400";
-      document.getElementById("expandedVideoMuteLabel").textContent = isMuted ? "Mudo" : "Com Som";
-    }
 
     window.closeExpandedVideo = function() {
       const overlay = document.getElementById("expandedVideoOverlay");
@@ -877,12 +773,7 @@
           <div class="relative ${heightClasses} bg-slate-950 overflow-hidden select-none">
             <video id="cardVid-${item.id}" src="${item.videoData}" autoplay loop ${isMuted ? "muted" : ""} playsinline
               onclick="openExpandedVideo(event, '${item.id}')"
-              title="Toque para ampliar • Toque novamente para voltar"
               class="w-full h-full object-cover cursor-zoom-in"></video>
-
-            <span class="pointer-events-none absolute top-2 left-2 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded">
-              <i class="fa-solid fa-expand mr-0.5"></i>20s
-            </span>
 
             <button type="button" onclick="toggleCardVideoMute(event, '${item.id}')"
               title="Ativar ou silenciar som"
@@ -906,7 +797,7 @@
             </div>
             <span id="cardPhotoCounter-${item.id}"
               class="pointer-events-none absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-              1/${photos.length} • Arraste
+              1/${photos.length}
             </span>
           </div>
         `;
@@ -938,7 +829,7 @@
         : "grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4";
 
       if (!list.length) {
-        container.innerHTML = `<div class="col-span-full py-14 text-center text-gray-400 bg-white rounded-2xl border border-gray-200 text-xs font-semibold">Nenhum item encontrado para essa palavra-chave.</div>`;
+        container.innerHTML = `<div class="col-span-full py-14 text-center text-gray-400 bg-white rounded-2xl border border-gray-200 text-xs font-semibold">Nenhum item encontrado.</div>`;
         return;
       }
 
