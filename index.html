@@ -25,7 +25,7 @@
 </head>
 <body class="bg-[#F5F5F5] text-slate-900 font-sans antialiased pb-28">
 
-  <!-- SELO FIXO NÃO EDITÁVEL NO TOPO: MESA + NOME + CONTATO + SINO DE STATUS -->
+  <!-- SELO FIXO NÃO EDITÁVEL NO TOPO -->
   <div id="fixedClientBadgeBar" class="sticky top-0 z-40 bg-[#111827] text-white border-b border-amber-400/30 shadow-md">
     <div class="max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2.5">
       <div class="flex items-center gap-2.5 min-w-0">
@@ -38,12 +38,11 @@
         </div>
       </div>
 
-      <!-- BOTÃO DO SINO / STATUS DOS PEDIDOS DA MESA -->
       <button type="button" onclick="handleBellClick()" id="bellStatusBtn"
         class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition flex-shrink-0">
         <i id="bellIcon" class="fa-solid fa-bell text-amber-400 text-sm"></i>
         <span class="text-[11px] font-black hidden sm:inline">Meus Pedidos</span>
-        <span id="readyOrdersBadge" class="hidden min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center">
+        <span id="readyOrdersBadge" class="hidden min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500 text-white text-[10px] font-black items-center justify-center">
           0
         </span>
       </button>
@@ -64,14 +63,12 @@
     </div>
   </div>
 
-  <!-- CABEÇALHO EM BORDA INFINITA COM BANNER NO TOPO + NOME E SUBTÍTULO FLUTUANTES OPCIONAIS -->
+  <!-- CABEÇALHO -->
   <header class="w-full bg-slate-950 border-b border-gray-200">
     <div id="heroHeaderWrapper" class="relative w-full h-44 sm:h-60 lg:h-72 overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800">
       <img id="headerCustomBannerImg" src="" alt="Banner do Restaurante"
         class="hidden w-full h-full object-cover object-center block select-none" />
-
       <div id="heroGradientOverlay" class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/15 pointer-events-none"></div>
-
       <div id="floatingHeaderTexts" class="absolute inset-x-0 bottom-0 max-w-6xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 flex flex-col justify-end pointer-events-none">
         <h1 id="storeNameText" class="font-black text-xl sm:text-3xl lg:text-4xl tracking-tight text-white drop-shadow-md leading-tight">
           CARDÁPIO DIGITAL
@@ -83,10 +80,8 @@
     </div>
   </header>
 
-  <!-- VITRINE DO CLIENTE -->
+  <!-- VITRINE -->
   <main class="max-w-6xl mx-auto px-3 sm:px-5 pt-3.5 space-y-4">
-
-    <!-- CAMPO RESUMIDO COM STATUS DO ÚLTIMO PEDIDO DA MESA -->
     <section id="liveOrderStatusCard" class="hidden bg-white rounded-2xl border border-gray-200 p-3.5 shadow-2xs">
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2.5 min-w-0">
@@ -105,7 +100,6 @@
       </div>
     </section>
 
-    <!-- BUSCA NA DESCRIÇÃO + DEPARTAMENTOS + SELETOR DE LAYOUT -->
     <section class="bg-white rounded-2xl border border-gray-200 p-3 space-y-2.5 shadow-2xs">
       <div class="flex items-center gap-2">
         <div class="relative flex items-center flex-1">
@@ -127,11 +121,9 @@
         </div>
       </div>
 
-      <!-- DEPARTAMENTOS -->
       <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
     </section>
 
-    <!-- CARROSSEL PANORÂMICO POSICIONADO ABAIXO DOS DEPARTAMENTOS (AUTO 5S + ARRASTE LATERAL) -->
     <section id="panoramaCarouselSection" class="hidden rounded-2xl overflow-hidden bg-slate-950 border border-gray-200 shadow-2xs">
       <div class="relative w-full overflow-hidden">
         <div id="panoramaTrack"
@@ -139,12 +131,10 @@
           ontouchstart="pauseCarouselTemp()"
           onmousedown="pauseCarouselTemp()"
           class="carousel-track flex overflow-x-auto no-scrollbar scroll-smooth"></div>
-
         <div id="panoramaDots" class="absolute bottom-2.5 inset-x-0 flex items-center justify-center gap-1.5 z-10"></div>
       </div>
     </section>
 
-    <!-- FEED DO CARDÁPIO (GRADE MAIOR LADO A LADO OU LISTA) -->
     <section id="menuItemsContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
       <div class="col-span-full py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-200">
         <i class="fa-solid fa-circle-notch fa-spin text-2xl text-amber-500 mb-2"></i>
@@ -153,16 +143,15 @@
     </section>
   </main>
 
-  <!-- OVERLAY DE VÍDEO CURTO AMPLIADO LEVEMENTE (LIMPO, APENAS COM X PARA RETORNAR) -->
+  <!-- OVERLAY VÍDEO AMPLIADO -->
   <div id="expandedVideoOverlay" onclick="closeExpandedVideo()"
     class="fixed inset-0 z-50 bg-black/80 hidden items-center justify-center p-4">
     <div onclick="event.stopPropagation()"
-      class="relative w-full max-w-xl rounded-2xl overflow-hidden bg-black shadow-2xl transition-transform duration-200 scale-100">
+      class="relative w-full max-w-xl rounded-2xl overflow-hidden bg-black shadow-2xl">
       <button type="button" onclick="closeExpandedVideo()" aria-label="Fechar vídeo"
         class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-black/65 hover:bg-black/85 text-white flex items-center justify-center text-sm">
         <i class="fa-solid fa-xmark"></i>
       </button>
-
       <video id="expandedVideoPlayer" autoplay loop muted playsinline
         class="w-full max-h-[68vh] object-cover block"></video>
     </div>
@@ -183,7 +172,7 @@
     </button>
   </div>
 
-  <!-- MODAL OBRIGATÓRIO AO ABRIR QR CODE: NOME + CONTATO -->
+  <!-- MODAL ONBOARDING -->
   <div id="clientOnboardingModal" class="fixed inset-0 z-50 bg-black/80 hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div>
@@ -191,7 +180,6 @@
         <h2 class="font-black text-base text-slate-900 mt-2">Informe seus dados para pedir</h2>
         <p class="text-xs text-gray-500 mt-0.5">Eles ficarão fixos no topo desta mesa.</p>
       </div>
-
       <form onsubmit="event.preventDefault(); confirmClientBadge();" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Nome completo *</label>
@@ -210,7 +198,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE STATUS DOS PEDIDOS ENVIADOS DA MESA (BLOQUEADO PARA EXCLUSÃO) -->
+  <!-- MODAL MEUS PEDIDOS -->
   <div id="myOrdersModal" class="fixed inset-0 z-50 bg-black/70 hidden items-end sm:items-center justify-center p-3 sm:p-4">
     <div class="bg-white w-full max-w-lg rounded-3xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3.5 bg-[#111827] text-white flex items-center justify-between">
@@ -218,32 +206,30 @@
           <i class="fa-solid fa-bell text-amber-400"></i>
           <h3 class="font-black text-sm">Status dos Meus Pedidos • <span id="ordersModalTableLabel" class="text-amber-400">Mesa 01</span></h3>
         </div>
-        <button onclick="closeModal('myOrdersModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" onclick="closeModal('myOrdersModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
-
       <div class="px-4 py-2 bg-amber-50 border-b border-amber-200 text-[11px] font-bold text-amber-900 flex items-center justify-between gap-2">
         <span><i class="fa-solid fa-lock text-amber-700 mr-1"></i>Pedidos enviados não podem ser excluídos.</span>
         <button type="button" onclick="playReadyAlertSound(true)" class="px-2 py-0.5 rounded bg-amber-200/80 text-amber-950 text-[10px] font-black">
           <i class="fa-solid fa-volume-high mr-1"></i>Testar Som
         </button>
       </div>
-
       <div id="myOrdersList" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
     </div>
   </div>
 
-  <!-- MODAL DETALHES DO ITEM (ATÉ 10 FOTOS + VÍDEO 20S) -->
+  <!-- MODAL DETALHES DO ITEM -->
   <div id="itemDetailModal" class="fixed inset-0 z-50 bg-black/75 hidden items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-white w-full max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3 bg-[#111827] text-white flex items-center justify-between">
         <span id="detailCategoryTag" class="text-[11px] font-black uppercase tracking-wider text-amber-400">Item</span>
-        <button onclick="closeModal('itemDetailModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" onclick="closeModal('itemDetailModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div id="itemDetailBody" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
     </div>
   </div>
 
-  <!-- MODAL SACOLA (PERMITE EXCLUIR ITEM OU EXCLUIR TODO O PEDIDO ANTES DO ENVIO) -->
+  <!-- MODAL SACOLA -->
   <div id="cartModal" class="fixed inset-0 z-50 bg-black/65 hidden items-end sm:items-center justify-center p-3 sm:p-4">
     <div class="bg-white w-full max-w-lg rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-4 py-3.5 bg-[#111827] text-white flex items-center justify-between">
@@ -257,12 +243,10 @@
             <i class="fa-solid fa-trash-can"></i>
             <span>Excluir Pedido</span>
           </button>
-          <button onclick="closeModal('cartModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+          <button type="button" onclick="closeModal('cartModal')" class="text-gray-300 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
       </div>
-
       <div id="cartItemsList" class="p-4 overflow-y-auto space-y-2.5 flex-1"></div>
-
       <div class="p-4 border-t border-gray-200 bg-slate-50 space-y-3">
         <div>
           <label class="block text-[11px] font-bold text-slate-700 mb-1">Observações do pedido</label>
@@ -329,22 +313,41 @@
     let carouselIndex = 0;
     let carouselTimer = null;
     let carouselPauseUntil = 0;
+    let isProgrammaticScroll = false;
     let knownReadyIds = new Set();
     let initialOrdersLoaded = false;
+    let toastTimer = null;
 
     const mutedCardVideos = new Map();
-
     let sharedAudioCtx = null;
+
+    function escapeHtml(val) {
+      return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function normalizePhone(phone) {
+      return String(phone || "").replace(/\D/g, "");
+    }
+
+    function setModalVisible(id, visible) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle("hidden", !visible);
+      el.classList.toggle("flex", visible);
+    }
 
     function unlockAudioContext() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
         if (!sharedAudioCtx) sharedAudioCtx = new AudioCtx();
-        if (sharedAudioCtx.state === "suspended") {
-          sharedAudioCtx.resume();
-        }
-      } catch (e) {}
+        if (sharedAudioCtx.state === "suspended") sharedAudioCtx.resume();
+      } catch (_) {}
     }
 
     ["pointerdown", "touchstart", "click", "keydown"].forEach(evt => {
@@ -356,13 +359,10 @@
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
         if (!sharedAudioCtx) sharedAudioCtx = new AudioCtx();
-        if (sharedAudioCtx.state === "suspended") {
-          await sharedAudioCtx.resume();
-        }
+        if (sharedAudioCtx.state === "suspended") await sharedAudioCtx.resume();
 
         const now = sharedAudioCtx.currentTime;
         const notes = [880, 1174.66, 1318.51];
-
         notes.forEach((freq, idx) => {
           const osc = sharedAudioCtx.createOscillator();
           const gain = sharedAudioCtx.createGain();
@@ -378,11 +378,9 @@
           osc.stop(start + 0.46);
         });
 
-        if (navigator.vibrate) {
-          navigator.vibrate([200, 100, 200]);
-        }
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         if (isManualTest) showToast("Som de alerta testado!");
-      } catch (e) {}
+      } catch (_) {}
     };
 
     function parsePrice(val) {
@@ -410,22 +408,24 @@
       } else {
         document.getElementById("lockedClientName").textContent = "Preencha nome e contato";
         document.getElementById("lockedClientPhone").textContent = "";
-        document.getElementById("clientOnboardingModal").classList.replace("hidden", "flex");
+        setModalVisible("clientOnboardingModal", true);
       }
     }
 
     window.confirmClientBadge = function() {
       unlockAudioContext();
-      if (lockedClient && lockedClient.fullName && lockedClient.phone) return;
       const fullName = (document.getElementById("onboardNameInput").value || "").trim();
       const phone = (document.getElementById("onboardPhoneInput").value || "").trim();
-      if (!fullName || !phone) return;
+      if (!fullName || normalizePhone(phone).length < 8) {
+        showToast("Informe nome e telefone válido.");
+        return;
+      }
 
       lockedClient = { fullName, phone };
       sessionStorage.setItem(`cliente_selo_mesa_${fixedTable}`, JSON.stringify(lockedClient));
       renderLockedBadge();
       renderTableOrdersStatus();
-      closeModal("clientOnboardingModal");
+      setModalVisible("clientOnboardingModal", false);
       showToast(`Mesa ${fixedTable} vinculada a ${fullName}`);
     };
 
@@ -443,19 +443,10 @@
       const floatingWrap = document.getElementById("floatingHeaderTexts");
       const overlayEl = document.getElementById("heroGradientOverlay");
 
-      if (showName && nameText) {
-        nameEl.textContent = nameText;
-        nameEl.classList.remove("hidden");
-      } else {
-        nameEl.classList.add("hidden");
-      }
-
-      if (showSub && subText) {
-        subEl.textContent = subText;
-        subEl.classList.remove("hidden");
-      } else {
-        subEl.classList.add("hidden");
-      }
+      nameEl.textContent = nameText;
+      nameEl.classList.toggle("hidden", !(showName && nameText));
+      subEl.textContent = subText;
+      subEl.classList.toggle("hidden", !(showSub && subText));
 
       const hasAnyFloatingText = (showName && nameText) || (showSub && subText);
       floatingWrap.classList.toggle("hidden", !hasAnyFloatingText);
@@ -494,11 +485,13 @@
     });
 
     function getMyTableOrders() {
+      const clientDigits = normalizePhone(lockedClient?.phone);
       return allOrders.filter(o => {
         const sameTable = String(o.tableNumber || "").trim() === String(fixedTable).trim();
         if (!sameTable) return false;
-        if (lockedClient?.phone && o.customerPhone) {
-          return String(o.customerPhone).trim() === String(lockedClient.phone).trim();
+        const orderDigits = normalizePhone(o.customerPhone);
+        if (clientDigits && orderDigits) {
+          return orderDigits === clientDigits;
         }
         return true;
       });
@@ -514,13 +507,12 @@
       const readyBanner = document.getElementById("readyOrderBanner");
       const liveCard = document.getElementById("liveOrderStatusCard");
 
+      const currentReadySet = new Set(readyOrders.map(o => o.id));
       let newlyReady = false;
-      readyOrders.forEach(o => {
-        if (!knownReadyIds.has(o.id)) {
-          knownReadyIds.add(o.id);
-          if (initialOrdersLoaded) newlyReady = true;
-        }
+      currentReadySet.forEach(id => {
+        if (!knownReadyIds.has(id) && initialOrdersLoaded) newlyReady = true;
       });
+      knownReadyIds = currentReadySet;
       initialOrdersLoaded = true;
 
       if (newlyReady) {
@@ -533,6 +525,7 @@
         bellIcon.classList.remove("text-amber-400");
         readyBadge.textContent = readyOrders.length;
         readyBadge.classList.remove("hidden");
+        readyBadge.classList.add("flex");
         readyBanner.classList.remove("hidden");
         document.getElementById("readyOrderBannerText").textContent =
           readyOrders.length === 1
@@ -542,6 +535,7 @@
         bellIcon.classList.remove("bell-ringing", "text-emerald-400");
         bellIcon.classList.add("text-amber-400");
         readyBadge.classList.add("hidden");
+        readyBadge.classList.remove("flex");
         readyBanner.classList.add("hidden");
       }
 
@@ -581,18 +575,18 @@
       };
 
       box.innerHTML = myOrders.map(o => {
-        const st = statusLabels[o.status] || { text: o.status || "Enviado", cls: "bg-slate-200 text-slate-800" };
+        const st = statusLabels[o.status] || { text: escapeHtml(o.status || "Enviado"), cls: "bg-slate-200 text-slate-800" };
         const hora = o.createdAt ? new Date(o.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
         return `
-          <div class="p-3.5 rounded-2xl border ${o.status === 'pronto' ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 bg-slate-50'} space-y-2">
+          <div class="p-3.5 rounded-2xl border ${o.status === "pronto" ? "border-emerald-500 bg-emerald-50/50" : "border-gray-200 bg-slate-50"} space-y-2">
             <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-black text-slate-900">Pedido às ${hora}</span>
+              <span class="text-xs font-black text-slate-900">Pedido às ${escapeHtml(hora)}</span>
               <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${st.cls}">${st.text}</span>
             </div>
             <div class="space-y-1 text-xs text-slate-700">
               ${(o.items || []).map(it => `
                 <div class="flex justify-between">
-                  <span><strong>${it.qty}x</strong> ${it.title}</span>
+                  <span><strong>${Number(it.qty || 1)}x</strong> ${escapeHtml(it.title)}</span>
                   <span class="font-bold">${formatBRL((it.unitPrice || 0) * (it.qty || 1))}</span>
                 </div>
               `).join("")}
@@ -609,14 +603,11 @@
     window.handleBellClick = function() {
       unlockAudioContext();
       const myOrders = getMyTableOrders();
-      if (myOrders.some(o => o.status === "pronto")) {
-        playReadyAlertSound(false);
-      }
+      if (myOrders.some(o => o.status === "pronto")) playReadyAlertSound(false);
       renderMyOrdersModalList(myOrders);
-      document.getElementById("myOrdersModal").classList.replace("hidden", "flex");
+      setModalVisible("myOrdersModal", true);
     };
 
-    // CARROSSEL PANORÂMICO (5S + ARRASTE)
     function renderPanoramaCarousel() {
       const section = document.getElementById("panoramaCarouselSection");
       const track = document.getElementById("panoramaTrack");
@@ -624,20 +615,21 @@
       if (carouselTimer) { clearInterval(carouselTimer); carouselTimer = null; }
       if (!panoramaSlides.length) { section.classList.add("hidden"); return; }
 
+      carouselIndex = Math.min(carouselIndex, panoramaSlides.length - 1);
       section.classList.remove("hidden");
       track.innerHTML = panoramaSlides.map(s => `
         <div class="carousel-slide relative w-full h-40 sm:h-52 lg:h-60 bg-slate-950">
-          <img src="${s.imageData}" alt="${s.title}" class="w-full h-full object-cover object-center block" />
+          <img src="${escapeHtml(s.imageData)}" alt="${escapeHtml(s.title)}" class="w-full h-full object-cover object-center block" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent flex flex-col justify-end pb-6 px-4 sm:px-5">
-            <p class="text-white font-black text-sm sm:text-xl leading-tight drop-shadow">${s.title}</p>
-            ${s.subtitle ? `<p class="text-amber-300 text-xs sm:text-sm font-semibold drop-shadow mt-0.5">${s.subtitle}</p>` : ""}
+            <p class="text-white font-black text-sm sm:text-xl leading-tight drop-shadow">${escapeHtml(s.title)}</p>
+            ${s.subtitle ? `<p class="text-amber-300 text-xs sm:text-sm font-semibold drop-shadow mt-0.5">${escapeHtml(s.subtitle)}</p>` : ""}
           </div>
         </div>
       `).join("");
 
       dots.innerHTML = panoramaSlides.map((_, idx) => `
         <button type="button" onclick="goToPanoramaSlide(${idx})"
-          class="h-1.5 rounded-full transition-all ${idx === carouselIndex ? 'w-6 bg-amber-400' : 'w-2 bg-white/45'}"></button>
+          class="h-1.5 rounded-full transition-all ${idx === carouselIndex ? "w-6 bg-amber-400" : "w-2 bg-white/45"}"></button>
       `).join("");
 
       if (panoramaSlides.length > 1) {
@@ -650,14 +642,21 @@
     }
 
     window.pauseCarouselTemp = function() { carouselPauseUntil = Date.now() + 7000; };
+
     window.goToPanoramaSlide = function(idx, pause = true) {
       if (pause) pauseCarouselTemp();
       carouselIndex = idx;
       const track = document.getElementById("panoramaTrack");
-      if (track) track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" });
+      if (track) {
+        isProgrammaticScroll = true;
+        track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" });
+        setTimeout(() => { isProgrammaticScroll = false; }, 450);
+      }
       updatePanoramaDots();
     };
+
     window.handlePanoramaScroll = function() {
+      if (isProgrammaticScroll) return;
       pauseCarouselTemp();
       const track = document.getElementById("panoramaTrack");
       if (!track || !track.clientWidth) return;
@@ -667,11 +666,12 @@
         updatePanoramaDots();
       }
     };
+
     function updatePanoramaDots() {
       const dots = document.getElementById("panoramaDots");
       if (!dots) return;
       [...dots.children].forEach((btn, idx) => {
-        btn.className = `h-1.5 rounded-full transition-all ${idx === carouselIndex ? 'w-6 bg-amber-400' : 'w-2 bg-white/45'}`;
+        btn.className = `h-1.5 rounded-full transition-all ${idx === carouselIndex ? "w-6 bg-amber-400" : "w-2 bg-white/45"}`;
       });
     }
 
@@ -685,20 +685,17 @@
     function updateLayoutButtons() {
       const btnGrid = document.getElementById("btnLayoutGrid");
       const btnList = document.getElementById("btnLayoutList");
-      if (feedLayout === "grid") {
-        btnGrid.className = "px-2.5 py-1.5 rounded-lg text-xs font-black bg-[#111827] text-amber-400 transition";
-        btnList.className = "px-2.5 py-1.5 rounded-lg text-xs font-black text-slate-600 hover:text-slate-900 transition";
-      } else {
-        btnList.className = "px-2.5 py-1.5 rounded-lg text-xs font-black bg-[#111827] text-amber-400 transition";
-        btnGrid.className = "px-2.5 py-1.5 rounded-lg text-xs font-black text-slate-600 hover:text-slate-900 transition";
-      }
+      const activeCls = "px-2.5 py-1.5 rounded-lg text-xs font-black bg-[#111827] text-amber-400 transition";
+      const idleCls = "px-2.5 py-1.5 rounded-lg text-xs font-black text-slate-600 hover:text-slate-900 transition";
+      btnGrid.className = feedLayout === "grid" ? activeCls : idleCls;
+      btnList.className = feedLayout === "list" ? activeCls : idleCls;
     }
 
     function renderCategoryTabs() {
       document.getElementById("categoryTabs").innerHTML = CATEGORIES.map(cat => `
         <button type="button" onclick="filterByCategory('${cat.id}')"
-          class="px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition ${currentCategory === cat.id ? 'bg-[#111827] text-amber-400' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
-          ${cat.label}
+          class="px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition ${currentCategory === cat.id ? "bg-[#111827] text-amber-400" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}">
+          ${escapeHtml(cat.label)}
         </button>
       `).join("");
     }
@@ -711,7 +708,6 @@
       return ["https://placehold.co/600x400/111827/fbbf24?text=Cardapio"];
     }
 
-    // CONTROLE DE SOM OPCIONAL NO VÍDEO DO CARD
     window.toggleCardVideoMute = function(event, itemId) {
       event.stopPropagation();
       unlockAudioContext();
@@ -723,39 +719,32 @@
       if (vid) vid.muted = nextMuted;
 
       const icon = document.getElementById(`cardMuteIcon-${itemId}`);
-      if (icon) {
-        icon.className = nextMuted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
-      }
+      if (icon) icon.className = nextMuted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
     };
 
-    // AMPLIA LEVEMENTE O VÍDEO AO CLICAR; X OU CLIQUE FORA RETORNA À GRADE
     window.openExpandedVideo = function(event, itemId) {
       event.stopPropagation();
       unlockAudioContext();
       const item = menuItems.find(m => m.id === itemId);
       if (!item || !item.videoData) return;
 
-      const overlay = document.getElementById("expandedVideoOverlay");
       const player = document.getElementById("expandedVideoPlayer");
-
       player.src = item.videoData;
       player.muted = mutedCardVideos.get(itemId) ?? true;
-      overlay.classList.replace("hidden", "flex");
+      setModalVisible("expandedVideoOverlay", true);
       player.play().catch(() => {});
     };
 
     window.closeExpandedVideo = function() {
-      const overlay = document.getElementById("expandedVideoOverlay");
       const player = document.getElementById("expandedVideoPlayer");
       if (player) {
         player.pause();
         player.removeAttribute("src");
         player.load();
       }
-      if (overlay) overlay.classList.replace("flex", "hidden");
+      setModalVisible("expandedVideoOverlay", false);
     };
 
-    // PASSAGEM LATERAL DIRETA DE MÚLTIPLAS FOTOS NO CARD
     window.updateCardPhotoCounter = function(trackEl, itemId, total) {
       if (!trackEl || !trackEl.clientWidth) return;
       const idx = Math.min(total - 1, Math.max(0, Math.round(trackEl.scrollLeft / trackEl.clientWidth)));
@@ -766,18 +755,19 @@
     function buildCardMediaHtml(item, heightClasses) {
       const photos = getItemPhotos(item);
       const isMuted = mutedCardVideos.get(item.id) ?? true;
+      const safeId = escapeHtml(item.id);
+      const safeTitle = escapeHtml(item.title);
 
       if (item.videoData) {
         return `
           <div class="relative ${heightClasses} bg-slate-950 overflow-hidden select-none">
-            <video id="cardVid-${item.id}" src="${item.videoData}" autoplay loop ${isMuted ? "muted" : ""} playsinline
-              onclick="openExpandedVideo(event, '${item.id}')"
+            <video id="cardVid-${safeId}" src="${escapeHtml(item.videoData)}" autoplay loop ${isMuted ? "muted" : ""} playsinline
+              onclick="openExpandedVideo(event, '${safeId}')"
               class="w-full h-full object-cover cursor-zoom-in"></video>
-
-            <button type="button" onclick="toggleCardVideoMute(event, '${item.id}')"
+            <button type="button" onclick="toggleCardVideoMute(event, '${safeId}')"
               title="Ativar ou silenciar som"
               class="absolute bottom-2 right-2 z-10 w-8 h-8 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center text-xs border border-white/20">
-              <i id="cardMuteIcon-${item.id}" class="fa-solid ${isMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i>
+              <i id="cardMuteIcon-${safeId}" class="fa-solid ${isMuted ? "fa-volume-xmark" : "fa-volume-high"}"></i>
             </button>
           </div>
         `;
@@ -786,15 +776,15 @@
       if (photos.length > 1) {
         return `
           <div class="relative ${heightClasses} bg-slate-100 overflow-hidden">
-            <div onscroll="updateCardPhotoCounter(this, '${item.id}', ${photos.length})"
+            <div onscroll="updateCardPhotoCounter(this, '${safeId}', ${photos.length})"
               class="carousel-track flex w-full h-full overflow-x-auto no-scrollbar scroll-smooth">
               ${photos.map(src => `
-                <div onclick="openItemDetail('${item.id}')" class="carousel-slide w-full h-full cursor-pointer">
-                  <img src="${src}" alt="${item.title}" class="w-full h-full object-cover block" />
+                <div onclick="openItemDetail('${safeId}')" class="carousel-slide w-full h-full cursor-pointer">
+                  <img src="${escapeHtml(src)}" alt="${safeTitle}" class="w-full h-full object-cover block" />
                 </div>
               `).join("")}
             </div>
-            <span id="cardPhotoCounter-${item.id}"
+            <span id="cardPhotoCounter-${safeId}"
               class="pointer-events-none absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
               1/${photos.length}
             </span>
@@ -803,8 +793,8 @@
       }
 
       return `
-        <div onclick="openItemDetail('${item.id}')" class="relative ${heightClasses} bg-slate-100 overflow-hidden cursor-pointer">
-          <img src="${photos[0]}" alt="${item.title}" class="w-full h-full object-cover block" />
+        <div onclick="openItemDetail('${safeId}')" class="relative ${heightClasses} bg-slate-100 overflow-hidden cursor-pointer">
+          <img src="${escapeHtml(photos[0])}" alt="${safeTitle}" class="w-full h-full object-cover block" />
         </div>
       `;
     }
@@ -813,7 +803,6 @@
       const container = document.getElementById("menuItemsContainer");
       const rawQ = (document.getElementById("menuSearchInput").value || "").trim().toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
       const searchTerms = rawQ ? rawQ.split(/\s+/).filter(Boolean) : [];
 
       const list = menuItems.filter(item => {
@@ -840,27 +829,26 @@
           const priceNum = parsePrice(item.price);
           const oldNum = parsePrice(item.oldPrice);
           const isSoldOut = item.available === false;
-          const deptName = CATEGORY_LABELS[item.category] || item.category || "Departamento";
+          const deptName = escapeHtml(CATEGORY_LABELS[item.category] || item.category || "Departamento");
+          const safeId = escapeHtml(item.id);
           return `
-            <article class="bg-white rounded-2xl border border-gray-200 p-3 shadow-2xs flex items-center gap-3.5 ${isSoldOut ? 'opacity-65' : ''}">
+            <article class="bg-white rounded-2xl border border-gray-200 p-3 shadow-2xs flex items-center gap-3.5 ${isSoldOut ? "opacity-65" : ""}">
               <div class="w-28 h-28 sm:w-36 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
                 ${buildCardMediaHtml(item, "w-full h-full")}
               </div>
-
               <div class="flex-1 min-w-0 flex flex-col justify-between self-stretch">
-                <div onclick="openItemDetail('${item.id}')" class="cursor-pointer space-y-1">
+                <div onclick="openItemDetail('${safeId}')" class="cursor-pointer space-y-1">
                   <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded">${deptName}</span>
-                  <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug">${item.title}</h3>
-                  ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
+                  <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug">${escapeHtml(item.title)}</h3>
+                  ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${escapeHtml(item.description)}</p>` : ""}
                 </div>
-
                 <div class="pt-2 flex items-center justify-between gap-2">
                   <div>
                     ${oldNum > priceNum ? `<span class="block text-[11px] text-gray-400 line-through">${formatBRL(oldNum)}</span>` : ""}
                     <span class="text-sm sm:text-base font-black text-emerald-700">${formatBRL(priceNum)}</span>
                   </div>
-                  <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}')"`}
-                    class="px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#111827] hover:bg-slate-800 text-amber-400'}">
+                  <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${safeId}')"`}
+                    class="px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 ${isSoldOut ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#111827] hover:bg-slate-800 text-amber-400"}">
                     <i class="fa-solid fa-plus"></i><span>${isSoldOut ? "Esgotado" : "Pedir"}</span>
                   </button>
                 </div>
@@ -875,18 +863,19 @@
         const priceNum = parsePrice(item.price);
         const oldNum = parsePrice(item.oldPrice);
         const isSoldOut = item.available === false;
-        const deptName = CATEGORY_LABELS[item.category] || item.category || "Departamento";
+        const deptName = escapeHtml(CATEGORY_LABELS[item.category] || item.category || "Departamento");
+        const safeId = escapeHtml(item.id);
         return `
-          <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? 'opacity-65' : ''}">
+          <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs flex flex-col justify-between ${isSoldOut ? "opacity-65" : ""}">
             <div>
               <div class="relative">
                 ${buildCardMediaHtml(item, "h-44 sm:h-52 lg:h-56 w-full")}
                 ${isSoldOut ? `<span class="pointer-events-none absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded z-10">ESGOTADO</span>` : ""}
               </div>
-              <div onclick="openItemDetail('${item.id}')" class="p-3 sm:p-3.5 space-y-1 cursor-pointer">
+              <div onclick="openItemDetail('${safeId}')" class="p-3 sm:p-3.5 space-y-1 cursor-pointer">
                 <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider text-amber-700">${deptName}</span>
-                <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug line-clamp-1">${item.title}</h3>
-                ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${item.description}</p>` : ""}
+                <h3 class="font-black text-sm sm:text-base text-slate-900 leading-snug line-clamp-1">${escapeHtml(item.title)}</h3>
+                ${item.description ? `<p class="text-xs text-gray-500 line-clamp-2">${escapeHtml(item.description)}</p>` : ""}
               </div>
             </div>
             <div class="px-3 sm:px-3.5 pb-3 sm:pb-3.5 pt-1 flex items-center justify-between gap-2">
@@ -894,8 +883,8 @@
                 ${oldNum > priceNum ? `<span class="block text-[10px] text-gray-400 line-through">${formatBRL(oldNum)}</span>` : ""}
                 <span class="text-sm sm:text-base font-black text-emerald-700">${formatBRL(priceNum)}</span>
               </div>
-              <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}')"`}
-                class="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1 ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#111827] hover:bg-slate-800 text-amber-400'}">
+              <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${safeId}')"`}
+                class="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1 ${isSoldOut ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#111827] hover:bg-slate-800 text-amber-400"}">
                 <i class="fa-solid fa-plus"></i><span>${isSoldOut ? "Esgotado" : "Pedir"}</span>
               </button>
             </div>
@@ -911,36 +900,37 @@
       const priceNum = parsePrice(item.price);
       const isSoldOut = item.available === false;
       const deptName = CATEGORY_LABELS[item.category] || item.category || "Cardápio";
+      const safeId = escapeHtml(item.id);
       document.getElementById("detailCategoryTag").textContent = deptName;
       document.getElementById("itemDetailBody").innerHTML = `
         <div class="carousel-track flex overflow-x-auto no-scrollbar rounded-2xl bg-slate-900 border">
           ${photos.map((src, idx) => `
             <div class="carousel-slide relative h-64 sm:h-72">
-              <img src="${src}" alt="${item.title}" class="w-full h-full object-cover" />
+              <img src="${escapeHtml(src)}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover" />
               <span class="absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">${idx + 1} / ${photos.length}</span>
             </div>
           `).join("")}
         </div>
-        ${item.videoData ? `<div class="rounded-2xl overflow-hidden bg-black border"><video src="${item.videoData}" controls autoplay muted playsinline class="w-full max-h-60 object-contain"></video></div>` : ""}
+        ${item.videoData ? `<div class="rounded-2xl overflow-hidden bg-black border"><video src="${escapeHtml(item.videoData)}" controls autoplay muted playsinline class="w-full max-h-60 object-contain"></video></div>` : ""}
         <div class="flex items-start justify-between gap-2 pt-1">
           <div>
-            <h3 class="font-black text-base text-slate-900">${item.title}</h3>
-            ${item.description ? `<p class="text-xs text-gray-600 mt-1">${item.description}</p>` : ""}
+            <h3 class="font-black text-base text-slate-900">${escapeHtml(item.title)}</h3>
+            ${item.description ? `<p class="text-xs text-gray-600 mt-1">${escapeHtml(item.description)}</p>` : ""}
           </div>
           <span class="text-base font-black text-emerald-700 whitespace-nowrap">${formatBRL(priceNum)}</span>
         </div>
-        <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${item.id}'); closeModal('itemDetailModal');"`}
-          class="w-full py-3 rounded-xl font-black text-xs sm:text-sm ${isSoldOut ? 'bg-gray-200 text-gray-400' : 'bg-[#111827] text-amber-400 hover:bg-slate-800'}">
+        <button type="button" ${isSoldOut ? "disabled" : `onclick="addToCart('${safeId}'); closeModal('itemDetailModal');"`}
+          class="w-full py-3 rounded-xl font-black text-xs sm:text-sm ${isSoldOut ? "bg-gray-200 text-gray-400" : "bg-[#111827] text-amber-400 hover:bg-slate-800"}">
           ${isSoldOut ? "Item Indisponível" : `Adicionar ao Pedido • ${formatBRL(priceNum)}`}
         </button>
       `;
-      document.getElementById("itemDetailModal").classList.replace("hidden", "flex");
+      setModalVisible("itemDetailModal", true);
     };
 
     window.addToCart = function(itemId) {
       unlockAudioContext();
       if (!lockedClient || !lockedClient.fullName || !lockedClient.phone) {
-        document.getElementById("clientOnboardingModal").classList.replace("hidden", "flex");
+        setModalVisible("clientOnboardingModal", true);
         return;
       }
       const item = menuItems.find(i => i.id === itemId);
@@ -970,7 +960,6 @@
 
     window.discardDraftOrder = function() {
       if (!cart.length) return;
-      if (!confirm("Excluir este pedido antes de enviar?")) return;
       cart = [];
       document.getElementById("orderGeneralNoteInput").value = "";
       updateCartBar();
@@ -998,7 +987,7 @@
     window.openCartModal = function() {
       if (!cart.length) return;
       renderCartModal();
-      document.getElementById("cartModal").classList.replace("hidden", "flex");
+      setModalVisible("cartModal", true);
     };
 
     function renderCartModal() {
@@ -1008,19 +997,19 @@
         <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0">
-              <p class="text-xs font-black text-slate-900 truncate">${c.title}</p>
+              <p class="text-xs font-black text-slate-900 truncate">${escapeHtml(c.title)}</p>
               <p class="text-[11px] font-bold text-emerald-700">${formatBRL(c.unitPrice * c.qty)}</p>
             </div>
             <div class="flex items-center gap-1.5">
-              <button onclick="changeCartQty(${idx}, -1)" class="w-7 h-7 rounded-lg bg-white border font-black text-xs">-</button>
+              <button type="button" onclick="changeCartQty(${idx}, -1)" class="w-7 h-7 rounded-lg bg-white border font-black text-xs">-</button>
               <span class="text-xs font-black w-5 text-center">${c.qty}</span>
-              <button onclick="changeCartQty(${idx}, 1)" class="w-7 h-7 rounded-lg bg-white border font-black text-xs">+</button>
-              <button onclick="removeCartItem(${idx})" title="Excluir item" class="w-7 h-7 rounded-lg bg-red-50 text-red-600 border border-red-200 text-xs ml-1">
+              <button type="button" onclick="changeCartQty(${idx}, 1)" class="w-7 h-7 rounded-lg bg-white border font-black text-xs">+</button>
+              <button type="button" onclick="removeCartItem(${idx})" title="Excluir item" class="w-7 h-7 rounded-lg bg-red-50 text-red-600 border border-red-200 text-xs ml-1">
                 <i class="fa-solid fa-trash"></i>
               </button>
             </div>
           </div>
-          <input type="text" value="${c.obs || ""}" oninput="updateItemNote(${idx}, this.value)"
+          <input type="text" value="${escapeHtml(c.obs || "")}" oninput="updateItemNote(${idx}, this.value)"
             placeholder="Ex: sem cebola, ponto da carne..." class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[11px] bg-white" />
         </div>
       `).join("");
@@ -1028,7 +1017,7 @@
 
     window.submitOrder = async function() {
       unlockAudioContext();
-      if (!lockedClient || !lockedClient.fullName || !lockedClient.phone || !cart.length) return;
+      if (!lockedClient || !lockedClient.fullName || normalizePhone(lockedClient.phone).length < 8 || !cart.length) return;
       const btn = document.getElementById("sendOrderBtn");
       btn.disabled = true;
       btn.textContent = "Enviando...";
@@ -1048,7 +1037,7 @@
         updateCartBar();
         closeModal("cartModal");
         showToast(`Pedido enviado pela Mesa ${fixedTable}!`);
-      } catch (e) {
+      } catch (_) {
         showToast("Erro ao enviar pedido.");
       } finally {
         btn.disabled = false;
@@ -1057,15 +1046,15 @@
     };
 
     window.closeModal = function(id) {
-      const el = document.getElementById(id);
-      if (el) el.classList.replace("flex", "hidden");
+      setModalVisible(id, false);
     };
 
     function showToast(msg) {
       const t = document.getElementById("toast");
       t.textContent = msg;
       t.classList.remove("opacity-0");
-      setTimeout(() => t.classList.add("opacity-0"), 2800);
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.add("opacity-0"), 2800);
     }
 
     renderLockedBadge();
